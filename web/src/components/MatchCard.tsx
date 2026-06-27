@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { ChevronDown, MapPin, UserCheck, Languages } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, MapPin, UserCheck, Languages, Image as ImageIcon, Volume2 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import type { MatchCandidate } from "@/lib/types";
 import { Chip } from "./ui";
@@ -65,11 +66,17 @@ export function MatchCard({
           <button onClick={() => setOpen(!open)} className="inline-flex items-center gap-1 text-xs font-medium text-slate-500">
             {t("match.why")} <ChevronDown className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`} />
           </button>
-          {onConfirm && (
-            <button onClick={onConfirm} disabled={confirming} className="btn-teal py-2 px-4 text-sm">
-              <UserCheck className="h-4 w-4" /> {t("match.confirmReunion")}
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {/* See the candidate's photo + hear their voice to identify (both ways). */}
+            <Link href={`/case/${c.id}`} className="btn-ghost py-2 px-3 text-sm">
+              <ImageIcon className="h-4 w-4" /> <Volume2 className="h-4 w-4" />
+            </Link>
+            {onConfirm && (
+              <button onClick={onConfirm} disabled={confirming} className="btn-teal py-2 px-4 text-sm">
+                <UserCheck className="h-4 w-4" /> {t("match.confirmReunion")}
+              </button>
+            )}
+          </div>
         </div>
 
         {open && (

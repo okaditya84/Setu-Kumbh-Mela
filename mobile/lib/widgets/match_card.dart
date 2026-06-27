@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../i18n/strings.dart';
@@ -6,8 +7,9 @@ import '../models/models.dart';
 class MatchCardWidget extends StatefulWidget {
   final MatchCandidate cand;
   final VoidCallback? onConfirm;
+  final VoidCallback? onView; // open full record: photo + voice playback
   final bool confirming;
-  const MatchCardWidget({super.key, required this.cand, this.onConfirm, this.confirming = false});
+  const MatchCardWidget({super.key, required this.cand, this.onConfirm, this.onView, this.confirming = false});
 
   @override
   State<MatchCardWidget> createState() => _MatchCardWidgetState();
@@ -21,6 +23,19 @@ class _MatchCardWidgetState extends State<MatchCardWidget> {
         'possible' => Colors.amber.shade700,
         _ => Colors.grey,
       };
+
+  Widget _avatar(CaseOut c) {
+    final url = c.photoUrl;
+    if (url != null && url.startsWith('data:image')) {
+      try {
+        final b64 = url.substring(url.indexOf(',') + 1);
+        return CircleAvatar(radius: 24, backgroundImage: MemoryImage(base64Decode(b64)));
+      } catch (_) {}
+    } else if (url != null && url.startsWith('http')) {
+      return CircleAvatar(radius: 24, backgroundImage: NetworkImage(url));
+    }
+    return CircleAvatar(radius: 24, backgroundColor: const Color(0xFFF1F5F9), child: Text((c.personName ?? '?').characters.first));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +55,7 @@ class _MatchCardWidgetState extends State<MatchCardWidget> {
               children: [
                 Row(
                   children: [
-                    CircleAvatar(radius: 22, backgroundColor: const Color(0xFFF1F5F9), child: Text((c.personName ?? '?').characters.first)),
+                    _avatar(c),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -75,13 +90,21 @@ class _MatchCardWidgetState extends State<MatchCardWidget> {
                       icon: Icon(_open ? Icons.expand_less : Icons.expand_more, size: 18),
                       label: Text(t('match.why')),
                     ),
-                    if (widget.onConfirm != null)
-                      FilledButton.tonalIcon(
-                        onPressed: widget.confirming ? null : widget.onConfirm,
-                        icon: const Icon(Icons.handshake, size: 18),
-                        label: Text(t('match.confirmReunion')),
-                        style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D9488), foregroundColor: Colors.white),
-                      ),
+                    Row(mainAxisSize: MainAxisSize.min, children: [
+                      if (widget.onView != null)
+                        IconButton(
+                          onPressed: widget.onView,
+                          tooltip: 'Photo & voice',
+                          icon: const Icon(Icons.photo_camera_front, color: Color(0xFFEA580C)),
+                        ),
+                      if (widget.onConfirm != null)
+                        FilledButton.tonalIcon(
+                          onPressed: widget.confirming ? null : widget.onConfirm,
+                          icon: const Icon(Icons.handshake, size: 18),
+                          label: Text(t('match.confirmReunion')),
+                          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D9488), foregroundColor: Colors.white),
+                        ),
+                    ]),
                   ],
                 ),
                 if (_open)

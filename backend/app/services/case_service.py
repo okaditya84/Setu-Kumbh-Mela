@@ -21,6 +21,7 @@ from app.db.models import AuditEvent, Case, CaseStatus, CaseType
 from app.geo.distance import geo_cell
 from app.geo.gazetteer import resolve_location
 from app.llm.services import enrich_attributes
+from app.matching import face
 from app.matching.normalize import build_normalized
 from app.schemas.models import CaseCreate
 
@@ -74,7 +75,7 @@ def create_case(db: Session, payload: CaseCreate, actor: str = "system",
         age_band=payload.age_band,
         physical_description=payload.physical_description,
     )
-    if use_llm:
+    if use_llm and settings.INTAKE_LLM_ENRICH:
         normalized = _merge_enrichment(normalized, enrich_attributes(payload.physical_description))
 
     # Resolve geography (explicit coords win; otherwise the gazetteer).
@@ -107,6 +108,9 @@ def create_case(db: Session, payload: CaseCreate, actor: str = "system",
         reporter_mobile_masked=mask_mobile(mob),
         normalized=normalized,
         photo_url=payload.photo_url,
+        # Auto face embedding when a provider is configured (else None → photo is
+        # still used for human recognition).
+        face_embedding=face.embed(payload.photo_url) if use_llm else None,
         secret_question=payload.secret_question,
         secret_answer_hash=hash_pii((payload.secret_answer or "").strip().lower() or None),
         remarks=payload.remarks,
@@ -130,6 +134,7 @@ def purge_pii(case: Case) -> None:
     case.reporter_mobile_hash = None
     case.reporter_mobile_masked = None
     case.photo_url = None
+    case.face_embedding = None
     case.secret_question = None
     case.secret_answer_hash = None
     for v in case.voice_samples:

@@ -13,6 +13,7 @@ import '../services/local_db.dart';
 import '../services/sync.dart';
 import '../theme.dart';
 import '../widgets/match_card.dart';
+import 'case_detail_screen.dart';
 
 class IntakeScreen extends StatefulWidget {
   final String caseType;
@@ -257,7 +258,11 @@ class _IntakeScreenState extends State<IntakeScreen> {
         Card(child: Padding(padding: const EdgeInsets.all(20), child: Text(t('match.noMatches')))),
       ...m.candidates.map((c) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: MatchCardWidget(cand: c, onConfirm: () => _confirm(c.caseOut.id)),
+            child: MatchCardWidget(
+              cand: c,
+              onConfirm: () => _confirm(c.caseOut.id),
+              onView: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CaseDetailScreen(caseId: c.caseOut.id))),
+            ),
           )),
     ];
   }
