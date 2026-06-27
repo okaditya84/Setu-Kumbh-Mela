@@ -77,16 +77,27 @@ def list_cases(
     if status_filter:
         stmt = stmt.where(Case.status == status_filter)
     if q:
-        like = f"%{q.lower()}%"
+        import re as _re
         from sqlalchemy import func, or_
-        stmt = stmt.where(
-            or_(
-                func.lower(Case.person_name).like(like),
-                func.lower(Case.last_seen_location).like(like),
-                func.lower(Case.physical_description).like(like),
-                func.lower(Case.case_id).like(like),
-            )
-        )
+        from app.matching.normalize import age_to_band
+        like = f"%{q.lower()}%"
+        conds = [
+            func.lower(Case.person_name).like(like),
+            func.lower(Case.last_seen_location).like(like),
+            func.lower(Case.physical_description).like(like),
+            func.lower(Case.case_id).like(like),
+            func.lower(Case.state).like(like),
+            func.lower(Case.district).like(like),
+            func.lower(Case.language).like(like),
+            func.lower(Case.gender).like(like),
+            func.lower(Case.reporting_center).like(like),
+            func.lower(Case.age_band).like(like),
+        ]
+        # "65" or "65 years" -> the matching age band.
+        m = _re.search(r"\b(\d{1,3})\b", q)
+        if m:
+            conds.append(Case.age_band == age_to_band(int(m.group(1))))
+        stmt = stmt.where(or_(*conds))
     stmt = stmt.order_by(Case.reported_at.desc()).limit(limit).offset(offset)
     return [case_to_out(c) for c in db.execute(stmt).scalars().all()]
 

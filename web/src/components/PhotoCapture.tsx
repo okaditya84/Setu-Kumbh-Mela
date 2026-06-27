@@ -88,7 +88,14 @@ export function PhotoCapture({ value, onChange }: Props) {
         </div>
       ) : streaming ? (
         <div className="space-y-2">
-          <video ref={videoRef} playsInline muted className="h-48 w-full rounded-xl bg-black object-cover" />
+          <video
+            ref={videoRef}
+            playsInline
+            autoPlay
+            muted
+            onLoadedMetadata={(e) => e.currentTarget.play().catch(() => {})}
+            className="h-48 w-full rounded-xl bg-black object-cover"
+          />
           <div className="flex gap-2">
             <button type="button" onClick={snap} className="btn-primary flex-1">
               <Camera className="h-5 w-5" /> {t("intake.capturePhoto")}

@@ -35,6 +35,7 @@ export default function MapPage() {
     cctv: false,
   });
   const [ready, setReady] = useState(false);
+  const [tileError, setTileError] = useState(false);
 
   useEffect(() => {
     if (!ref.current || mapRef.current) return;
@@ -48,11 +49,23 @@ export default function MapPage() {
     map.addControl(new maplibregl.GeolocateControl({ trackUserLocation: true }), "top-right");
     mapRef.current = map;
     map.on("load", async () => {
+      map.resize(); // canvas can init at 0×0 before layout settles
       await addData(map);
       startPulse(map);
       setReady(true);
     });
+    // Keep the canvas sized to its container (fixes blank/white map).
+    const ro = new ResizeObserver(() => map.resize());
+    ro.observe(ref.current);
+    const t = setTimeout(() => map.resize(), 400);
+    // Surface tile-load failures (e.g. Brave Shields blocking OSM tiles).
+    map.on("error", (e: any) => {
+      const msg = String(e?.error?.message || "");
+      if (msg.includes("tile") || msg.toLowerCase().includes("fetch")) setTileError(true);
+    });
     return () => {
+      ro.disconnect();
+      clearTimeout(t);
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
       map.remove();
@@ -199,8 +212,14 @@ export default function MapPage() {
   return (
     <AppFrame>
       <h1 className="text-xl font-extrabold mb-3">{t("map.title")}</h1>
+      {tileError && (
+        <div className="mb-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm px-3 py-2">
+          Map tiles could not load. If you use Brave/an ad-blocker, lower the Shields for this site
+          (OpenStreetMap tiles are being blocked). Case pins, hotspots and routing still work.
+        </div>
+      )}
       <div className="card overflow-hidden">
-        <div ref={ref} className="h-[60vh] lg:h-[72vh] w-full" />
+        <div ref={ref} className="h-[60vh] lg:h-[72vh] w-full bg-slate-100" />
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         {legend.map((l) => (

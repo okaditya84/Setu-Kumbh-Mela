@@ -1,12 +1,12 @@
 "use client";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Sparkles, ChevronDown, Send, CheckCircle2, WifiOff } from "lucide-react";
+import { Sparkles, ChevronDown, Send, CheckCircle2, WifiOff, Search, Save } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { VoiceCapture } from "@/components/VoiceCapture";
 import { PhotoCapture } from "@/components/PhotoCapture";
 import { MatchCard } from "@/components/MatchCard";
-import { Scanning, Chip } from "@/components/ui";
+import { Scanning, Chip, Spinner } from "@/components/ui";
 import { useI18n } from "@/i18n";
 import { LANGUAGES } from "@/i18n/languages";
 import { api } from "@/lib/api";
@@ -26,14 +26,19 @@ function IntakeInner() {
   const [showManual, setShowManual] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Preview result (NOT persisted). Set by previewCase on "Find matches".
   const [matches, setMatches] = useState<MatchResponse | null>(null);
   const [savedOffline, setSavedOffline] = useState(false);
-  const [createdId, setCreatedId] = useState<string | null>(null);
+  // The real persisted case id — set ONLY after the volunteer explicitly registers.
+  const [registeredId, setRegisteredId] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [reunited, setReunited] = useState(false);
   const [locations, setLocations] = useState<string[]>([]);
   // Incremented to tell VoiceCapture to stop listening (e.g. on submit).
   const [stopSignal, setStopSignal] = useState(0);
+  // Stable client_uuid for this report so preview→register→confirm stay idempotent.
+  const clientUuidRef = useRef<string>(uuid());
 
   useEffect(() => {
     setDraft((d) => ({ ...d, case_type: caseType }));
@@ -92,24 +97,28 @@ function IntakeInner() {
     }
   }
 
+  // Build the payload for preview/register/queue from the current draft + media.
+  function buildPayload(): CaseDraft {
+    return { ...draft, client_uuid: clientUuidRef.current, photo_url: photo };
+  }
+
+  // "Find matches" → PREVIEW ONLY. Does NOT persist anything.
   async function submit() {
     // Stop any active voice recognition before submitting.
     setStopSignal((s) => s + 1);
     setSubmitting(true);
     setSavedOffline(false);
-    const payload: CaseDraft = { ...draft, client_uuid: uuid(), photo_url: photo };
+    const payload = buildPayload();
     try {
       if (typeof navigator !== "undefined" && !navigator.onLine) {
+        // Offline: we can't preview against other centers, so queue the report
+        // for registration when connectivity returns.
         await enqueueCase(payload, photo);
         setSavedOffline(true);
         return;
       }
-      const res = await api.createCase(payload);
+      const res = await api.previewCase(payload);
       setMatches(res);
-      setCreatedId(res.query_case_id);
-      if (audioBlob) {
-        api.uploadVoice(res.query_case_id, audioBlob, "description", announceName).catch(() => {});
-      }
     } catch {
       // Network hiccup → queue it so nothing is lost.
       await enqueueCase(payload, photo);
@@ -119,24 +128,60 @@ function IntakeInner() {
     }
   }
 
+  // Explicitly persist the report (volunteer pressed "Register this report").
+  // Returns the new case id, or null on failure. Idempotent via client_uuid.
+  async function ensureRegistered(): Promise<string | null> {
+    if (registeredId) return registeredId;
+    const res = await api.createCase(buildPayload());
+    const id = res.query_case_id;
+    setRegisteredId(id);
+    setMatches(res); // refresh against the now-persisted record
+    if (audioBlob) {
+      api.uploadVoice(id, audioBlob, "description", announceName).catch(() => {});
+    }
+    return id;
+  }
+
+  async function register() {
+    setRegistering(true);
+    try {
+      await ensureRegistered();
+    } finally {
+      setRegistering(false);
+    }
+  }
+
+  // Disambiguation: during preview there's no persisted id, so apply the chosen
+  // answer to the draft and re-preview. After registration, refine the record.
   async function refine(field: string, value: string) {
-    if (!createdId) return;
-    const key = field === "stable" ? "add_stable" : field;
     setSubmitting(true);
     try {
-      const res = await api.refineCase(createdId, { [key]: value });
-      setMatches(res);
+      if (registeredId) {
+        const key = field === "stable" ? "add_stable" : field;
+        const res = await api.refineCase(registeredId, { [key]: value });
+        setMatches(res);
+      } else {
+        const next: CaseDraft =
+          field === "stable"
+            ? { ...draft, physical_description: [draft.physical_description, value].filter(Boolean).join(" ") }
+            : { ...draft, [field]: value } as CaseDraft;
+        setDraft(next);
+        const res = await api.previewCase({ ...next, client_uuid: clientUuidRef.current, photo_url: photo });
+        setMatches(res);
+      }
     } finally {
       setSubmitting(false);
     }
   }
 
+  // "Confirm reunion" — register the report first (if not yet), then decide.
   async function confirm(candidateCaseId: string) {
-    if (!createdId) return;
     setConfirmingId(candidateCaseId);
-    const missing = caseType === "missing" ? createdId : candidateCaseId;
-    const found = caseType === "found" ? createdId : candidateCaseId;
     try {
+      const myId = await ensureRegistered();
+      if (!myId) return;
+      const missing = caseType === "missing" ? myId : candidateCaseId;
+      const found = caseType === "found" ? myId : candidateCaseId;
       await api.decideMatch(missing, found, "confirm");
       setReunited(true);
     } finally {
@@ -334,12 +379,19 @@ function IntakeInner() {
         </div>
       )}
 
-      {matches && (
+      {matches && !registeredId && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
+          {/* (a) Summary of what is being filed */}
+          <SummaryCard caseType={caseType} draft={draft} photo={photo} t={t} />
+
+          {/* (b) Possible matches */}
+          <div className="flex items-center justify-between pt-1">
             <h2 className="font-bold">{t("match.title")}</h2>
             <span className="text-xs text-slate-400">{matches.total_considered} {t("match.considered")}</span>
           </div>
+          <p className="text-sm text-slate-500 -mt-2">
+            Other reports that may be the SAME person, from any center — confirm to reunite.
+          </p>
 
           {matches.needs_disambiguation && matches.disambiguation_questions.length > 0 && (
             <div className="card p-4 bg-amber-50 border-amber-200">
@@ -361,10 +413,11 @@ function IntakeInner() {
 
           {matches.candidates.length === 0 ? (
             <div className="card p-8 text-center">
-              <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-green-100 text-green-600">
-                <CheckCircle2 className="h-7 w-7" />
+              <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-slate-100 text-slate-500">
+                <Search className="h-7 w-7" />
               </div>
-              <p className="font-semibold text-slate-700">{t("match.noMatches")}</p>
+              <p className="font-semibold text-slate-700">No matches yet.</p>
+              <p className="text-sm text-slate-500 mt-1">Register the report so it becomes searchable at every center.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
@@ -374,12 +427,89 @@ function IntakeInner() {
             </div>
           )}
 
-          <button className="btn-ghost w-full" onClick={() => router.push(createdId ? `/case/${createdId}` : "/")}>
-            {t("common.close")}
+          {/* (c) Explicit register action — the ONLY way to persist */}
+          <div className="card p-4 bg-saffron-50 border-saffron-200 sticky bottom-24 lg:static lg:bottom-auto">
+            <p className="text-sm text-slate-600 mb-2">Nothing is saved yet. Review the details above, then register.</p>
+            <button onClick={register} disabled={registering} className="btn-primary w-full py-4 text-lg">
+              {registering ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />} Register this report
+            </button>
+          </div>
+          <button className="btn-ghost w-full" onClick={() => router.push("/")}>
+            {t("common.cancel")}
           </button>
         </div>
       )}
+
+      {/* Registered confirmation */}
+      {registeredId && !reunited && (
+        <div className="card p-8 text-center mt-6 max-w-md mx-auto">
+          <CheckCircle2 className="mx-auto h-16 w-16 text-green-500 mb-3" />
+          <p className="text-xl font-bold">Registered</p>
+          <p className="text-sm text-slate-500 mt-1">The report is now searchable at every center.</p>
+          <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-center">
+            <button className="btn-primary" onClick={() => router.push(`/case/${registeredId}`)}>Go to case</button>
+            <button className="btn-ghost" onClick={() => router.push("/")}>{t("nav.home")}</button>
+          </div>
+        </div>
+      )}
     </AppFrame>
+  );
+}
+
+function SummaryCard({
+  caseType,
+  draft,
+  photo,
+  t,
+}: {
+  caseType: CaseType;
+  draft: CaseDraft;
+  photo: string | null;
+  t: (k: string) => string;
+}) {
+  const heading =
+    caseType === "missing" ? "You are filing a MISSING report:" : "You are filing a FOUND person:";
+  const rows: { label: string; value?: string | null }[] = [
+    { label: t("intake.name"), value: draft.person_name },
+    { label: t("intake.gender"), value: draft.gender },
+    { label: t("intake.age"), value: draft.age_band },
+    { label: t("intake.language"), value: draft.language },
+    { label: t("intake.lastSeen"), value: draft.last_seen_location },
+    { label: t("intake.state"), value: draft.state },
+  ].filter((r) => r.value);
+
+  return (
+    <div className={`card p-4 ${caseType === "missing" ? "bg-saffron-50 border-saffron-200" : "bg-teal-50 border-teal-200"}`}>
+      <p className={`text-sm font-semibold mb-3 ${caseType === "missing" ? "text-saffron-800" : "text-teal-800"}`}>
+        {heading}
+      </p>
+      <div className="flex items-start gap-3">
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo} alt="" className="h-16 w-16 rounded-xl object-cover border" />
+        ) : (
+          <div className="grid h-16 w-16 place-items-center rounded-xl bg-white/70 text-2xl font-bold text-slate-400">
+            {(draft.person_name || "?")[0]}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-lg">{draft.person_name || t("common.unknown")}</p>
+          {rows.length > 0 && (
+            <dl className="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm">
+              {rows.map((r) => (
+                <div key={r.label} className="flex gap-1 min-w-0">
+                  <dt className="text-slate-400 shrink-0">{r.label}:</dt>
+                  <dd className="text-slate-700 truncate">{r.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      </div>
+      {draft.physical_description && (
+        <p className="mt-3 text-sm bg-white/70 rounded-lg p-2.5 text-slate-700">{draft.physical_description}</p>
+      )}
+    </div>
   );
 }
 

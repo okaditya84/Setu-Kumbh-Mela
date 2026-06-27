@@ -57,6 +57,11 @@ export const api = {
   createCase: (draft: CaseDraft) =>
     req<MatchResponse>("/cases", { method: "POST", body: JSON.stringify(draft) }),
 
+  // Preview matches WITHOUT persisting (query_case_id is a temp id). The volunteer
+  // reviews the summary + matches, then explicitly registers via createCase.
+  previewCase: (draft: CaseDraft) =>
+    req<MatchResponse>("/cases/preview", { method: "POST", body: JSON.stringify(draft) }),
+
   listCases: (params: Record<string, string> = {}) =>
     req<CaseOut[]>(`/cases?${new URLSearchParams(params).toString()}`),
 

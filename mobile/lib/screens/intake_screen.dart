@@ -38,6 +38,9 @@ class _IntakeScreenState extends State<IntakeScreen> {
   String? _photoB64;
   MatchResponse? _matches;
   bool _savedOffline = false, _reunited = false;
+  // Preview (no auto-register) state.
+  bool _registered = false; // user explicitly registered the report
+  String? _registeredCaseId;
 
   // text controllers
   final _name = TextEditingController();
@@ -177,27 +180,36 @@ class _IntakeScreenState extends State<IntakeScreen> {
       (_draft.lastSeenLocation == null || _draft.lastSeenLocation!.isEmpty) &&
       _photoB64 == null;
 
-  Future<void> _submit() async {
-    if (_isEmpty) return;
-    setState(() => _submitting = true);
+  /// Copies the editable form fields into [_draft] (without assigning a
+  /// client_uuid — that's only done at register/enqueue time).
+  void _syncDraftFromForm() {
     _draft
-      ..clientUuid = const Uuid().v4()
       ..personName = _name.text.trim().isEmpty ? null : _name.text.trim()
       ..physicalDescription = _desc.text.trim().isEmpty ? null : _desc.text.trim()
       ..reporterMobile = _mobile.text.trim().isEmpty ? null : _mobile.text.trim()
       ..photoUrl = _photoB64;
+  }
+
+  /// "Find matches": preview matches WITHOUT persisting the report. Offline we
+  /// still enqueue (no server to preview against), as before.
+  Future<void> _findMatches() async {
+    if (_isEmpty) return;
+    setState(() => _submitting = true);
+    _syncDraftFromForm();
     final sync = context.read<SyncService>();
     final api = context.read<AuthProvider>().api;
     try {
       if (!sync.online) {
+        _draft.clientUuid ??= const Uuid().v4();
         await LocalDb.enqueue(_draft.clientUuid!, _draft.toJson());
         await sync.refresh();
         setState(() => _savedOffline = true);
         return;
       }
-      final res = await api.createCase(_draft);
+      final res = await api.previewCase(_draft);
       setState(() => _matches = res);
     } catch (_) {
+      _draft.clientUuid ??= const Uuid().v4();
       await LocalDb.enqueue(_draft.clientUuid!, _draft.toJson());
       await sync.refresh();
       setState(() => _savedOffline = true);
@@ -206,25 +218,84 @@ class _IntakeScreenState extends State<IntakeScreen> {
     }
   }
 
-  Future<void> _refine(String field, String value) async {
-    if (_matches == null) return;
-    final key = field == 'stable' ? 'add_stable' : field;
+  /// Persists the previewed report. Returns the registered case id, or null on
+  /// failure. Safe to call repeatedly (idempotent via client_uuid).
+  Future<String?> _ensureRegistered() async {
+    if (_registered && _registeredCaseId != null) return _registeredCaseId;
+    final api = context.read<AuthProvider>().api;
+    _syncDraftFromForm();
+    _draft.clientUuid ??= const Uuid().v4();
+    final res = await api.createCase(_draft);
+    _registered = true;
+    _registeredCaseId = res.queryCaseId;
+    return _registeredCaseId;
+  }
+
+  /// "Register this report" button.
+  Future<void> _register() async {
     setState(() => _submitting = true);
     try {
-      final res = await context.read<AuthProvider>().api.refineCase(_matches!.queryCaseId, {key: value});
-      setState(() => _matches = res);
+      await _ensureRegistered();
+      setState(() {});
     } finally {
       setState(() => _submitting = false);
     }
   }
 
+  /// Disambiguation answer. Since preview doesn't persist, we apply the answer
+  /// to the local draft and re-preview rather than calling the server refine
+  /// endpoint (which needs a persisted case).
+  Future<void> _refine(String field, String value) async {
+    setState(() => _submitting = true);
+    try {
+      switch (field) {
+        case 'gender':
+          _draft.gender = value;
+          break;
+        case 'age_band':
+          _draft.ageBand = value;
+          break;
+        case 'language':
+          _draft.language = value;
+          break;
+        case 'state':
+          _draft.state = value;
+          break;
+        case 'district':
+          _draft.district = value;
+          break;
+        case 'last_seen_location':
+          _draft.lastSeenLocation = value;
+          break;
+        case 'stable':
+        default:
+          // Append a stable/clarifying detail to the description.
+          final cur = _desc.text.trim();
+          _desc.text = cur.isEmpty ? value : '$cur; $value';
+          break;
+      }
+      _syncDraftFromForm();
+      final res = await context.read<AuthProvider>().api.previewCase(_draft);
+      setState(() => _matches = res);
+    } catch (_) {} finally {
+      setState(() => _submitting = false);
+    }
+  }
+
   Future<void> _confirm(String candidateId) async {
-    final api = context.read<AuthProvider>().api;
-    final created = _matches!.queryCaseId;
-    final missing = widget.caseType == 'missing' ? created : candidateId;
-    final found = widget.caseType == 'found' ? created : candidateId;
-    await api.decideMatch(missing, found, 'confirm');
-    setState(() => _reunited = true);
+    setState(() => _submitting = true);
+    try {
+      final api = context.read<AuthProvider>().api;
+      // Register first (if needed) so the new report has a real id to link.
+      final created = await _ensureRegistered();
+      if (created == null) return;
+      final missing = widget.caseType == 'missing' ? created : candidateId;
+      final found = widget.caseType == 'found' ? created : candidateId;
+      await api.decideMatch(missing, found, 'confirm');
+      setState(() => _reunited = true);
+    } finally {
+      setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -243,6 +314,36 @@ class _IntakeScreenState extends State<IntakeScreen> {
             const SizedBox(height: 16),
             FilledButton(onPressed: () => Navigator.popUntil(context, (r) => r.isFirst), child: Text(t('nav.home'))),
           ]),
+        ),
+      );
+    }
+
+    // Registered (and not reunited): confirmation screen.
+    if (_registered) {
+      return Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.verified, color: kTeal, size: 72),
+              const SizedBox(height: 12),
+              const Text('Registered — searchable at every center',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+              const SizedBox(height: 8),
+              Text(_name.text.trim().isEmpty ? '' : _name.text.trim(), style: const TextStyle(color: Colors.black54)),
+              const SizedBox(height: 16),
+              if (_registeredCaseId != null)
+                FilledButton.icon(
+                  onPressed: () => Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (_) => CaseDetailScreen(caseId: _registeredCaseId!))),
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('Open this report'),
+                ),
+              const SizedBox(height: 8),
+              TextButton(onPressed: () => Navigator.popUntil(context, (r) => r.isFirst), child: Text(t('nav.home'))),
+            ]),
+          ),
         ),
       );
     }
@@ -285,7 +386,7 @@ class _IntakeScreenState extends State<IntakeScreen> {
               const SizedBox(height: 8),
               _form(t),
               const SizedBox(height: 16),
-              FilledButton.icon(onPressed: (_submitting || _isEmpty) ? null : _submit, icon: const Icon(Icons.send), label: Text(t('intake.submit'))),
+              FilledButton.icon(onPressed: (_submitting || _isEmpty) ? null : _findMatches, icon: const Icon(Icons.search), label: Text(t('intake.submit'))),
               if (_isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 8),
@@ -345,10 +446,55 @@ class _IntakeScreenState extends State<IntakeScreen> {
     );
   }
 
+  Widget _summaryCard() {
+    final missing = widget.caseType == 'missing';
+    final heading = missing ? 'You are filing a MISSING report:' : 'You are filing a FOUND person:';
+    final fields = <String>[
+      if (_name.text.trim().isNotEmpty) _name.text.trim(),
+      if (_draft.gender != null) _draft.gender!,
+      if (_draft.ageBand != null) _draft.ageBand!,
+      if (_draft.language != null && _draft.language!.isNotEmpty) _draft.language!,
+      if (_draft.state != null && _draft.state!.isNotEmpty) _draft.state!,
+      if (_draft.lastSeenLocation != null && _draft.lastSeenLocation!.isNotEmpty) _draft.lastSeenLocation!,
+    ];
+    return Card(
+      color: missing ? kSaffronLight : const Color(0xFFCCFBF1),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (_photoB64 != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.memory(base64Decode(_photoB64!.substring(_photoB64!.indexOf(',') + 1)), width: 56, height: 56, fit: BoxFit.cover),
+              ),
+            ),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(heading, style: TextStyle(fontWeight: FontWeight.bold, color: missing ? kSaffron : kTeal)),
+              const SizedBox(height: 4),
+              Text(fields.isEmpty ? '(details only in description)' : fields.join(' · ')),
+              if (_desc.text.trim().isNotEmpty)
+                Padding(padding: const EdgeInsets.only(top: 4), child: Text('“${_desc.text.trim()}”', style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.black54))),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+
   List<Widget> _results(String Function(String) t) {
     final m = _matches!;
     return [
-      Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(t('match.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+      _summaryCard(),
+      const SizedBox(height: 4),
+      Padding(padding: const EdgeInsets.only(top: 8), child: Text(t('match.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+      const Padding(
+        padding: EdgeInsets.only(top: 2, bottom: 4),
+        child: Text('Other reports that may be the SAME person, from any center — confirm to reunite.',
+            style: TextStyle(fontSize: 12.5, color: Colors.black54)),
+      ),
       if (m.needsDisambiguation && m.disambiguationQuestions.isNotEmpty)
         Card(
           color: const Color(0xFFFEF3C7),
@@ -379,10 +525,23 @@ class _IntakeScreenState extends State<IntakeScreen> {
             padding: const EdgeInsets.only(bottom: 10),
             child: MatchCardWidget(
               cand: c,
+              confirming: _submitting,
               onConfirm: () => _confirm(c.caseOut.id),
               onView: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CaseDetailScreen(caseId: c.caseOut.id))),
             ),
           )),
+      const SizedBox(height: 8),
+      // Nothing is persisted until the user explicitly registers.
+      FilledButton.icon(
+        onPressed: _submitting ? null : _register,
+        icon: const Icon(Icons.how_to_reg),
+        label: const Text('Register this report'),
+      ),
+      const Padding(
+        padding: EdgeInsets.only(top: 6),
+        child: Text('Your report is not saved yet. Register to make it searchable at every center.',
+            style: TextStyle(fontSize: 12, color: Colors.black45), textAlign: TextAlign.center),
+      ),
     ];
   }
 }
