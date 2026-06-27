@@ -32,6 +32,7 @@ export function VoiceCapture({ onResult, onInterim, onServerDraft, caseType, sto
   const finalRef = useRef("");
   const streamRef = useRef<MediaStream | null>(null);
   const listeningRef = useRef(false);
+  const maxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => stopAll();
@@ -113,8 +114,11 @@ export function VoiceCapture({ onResult, onInterim, onServerDraft, caseType, sto
         if (e.error === "not-allowed" || e.error === "service-not-allowed") setError(t("intake.permMic"));
       };
       rec.onend = () => {
-        // If still flagged listening, the engine ended early; finalize.
-        if (listeningRef.current) finish();
+        // IMPORTANT: do NOT stop the session here. In Brave/Safari the speech
+        // service is blocked and fires onend immediately — that must not end the
+        // recording. MediaRecorder owns the session; the server transcribes the
+        // audio on stop. Just release the recognition handle.
+        recognitionRef.current = null;
       };
       recognitionRef.current = rec;
       try {
@@ -127,10 +131,19 @@ export function VoiceCapture({ onResult, onInterim, onServerDraft, caseType, sto
       setError(t("intake.noSpeech"));
     }
     setListeningState(true);
+    // Safety auto-stop so a forgotten recording can't run forever.
+    if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+    maxTimerRef.current = setTimeout(() => {
+      if (listeningRef.current) finish();
+    }, 45000);
   }
 
   function finish() {
     if (!listeningRef.current) return;
+    if (maxTimerRef.current) {
+      clearTimeout(maxTimerRef.current);
+      maxTimerRef.current = null;
+    }
     setListeningState(false);
     stopAll();
     const stream = streamRef.current;
