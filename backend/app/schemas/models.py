@@ -70,6 +70,7 @@ class CaseOut(BaseModel):
     reporter_mobile_masked: Optional[str] = None
     photo_url: Optional[str] = None
     has_secret: bool = False
+    secret_question: Optional[str] = None  # the question only (never the answer)
     normalized: Dict[str, Any] = {}
     remarks: Optional[str] = None
     reported_at: Optional[datetime] = None
