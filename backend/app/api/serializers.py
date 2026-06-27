@@ -26,6 +26,7 @@ def case_to_out(c: Case) -> CaseOut:
         reporter_mobile_masked=c.reporter_mobile_masked,
         photo_url=c.photo_url,
         has_secret=bool(c.secret_answer_hash),
+        secret_question=c.secret_question,
         normalized=c.normalized or {},
         remarks=c.remarks,
         reported_at=c.reported_at,

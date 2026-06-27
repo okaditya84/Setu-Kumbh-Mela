@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Noto Sans",
+    "Noto Sans Devanagari", "Noto Sans Tamil", "Noto Sans Bengali", sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+  font-family: var(--font-sans);
+}
+
+/* Large, finger-friendly tap targets for tired volunteers in the field. */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold
+      transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-saffron-600 text-white hover:bg-saffron-700 shadow-sm;
+  }
+  .btn-teal {
+    @apply btn bg-teal-600 text-white hover:bg-teal-700 shadow-sm;
+  }
+  .btn-ghost {
+    @apply btn bg-white text-slate-700 border border-slate-200 hover:bg-slate-50;
+  }
+  .card {
+    @apply rounded-2xl bg-white border border-slate-200 shadow-sm;
+  }
+  .input {
+    @apply w-full rounded-xl border border-slate-300 px-4 py-3 text-base
+      focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-saffron-400;
+  }
+  .label {
+    @apply block text-sm font-medium text-slate-600 mb-1;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium;
+  }
+}
+
+/* Scanning sweep used while matching. */
+.scan-sweep {
+  background: linear-gradient(100deg, transparent 30%, rgba(249, 115, 22, 0.25) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: sweep 1.2s linear infinite;
+}
+@keyframes sweep {
+  to {
+    background-position: -200% 0;
+  }
+}
