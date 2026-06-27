@@ -6,8 +6,9 @@ import '../models/models.dart';
 class MatchCardWidget extends StatefulWidget {
   final MatchCandidate cand;
   final VoidCallback? onConfirm;
+  final VoidCallback? onView;
   final bool confirming;
-  const MatchCardWidget({super.key, required this.cand, this.onConfirm, this.confirming = false});
+  const MatchCardWidget({super.key, required this.cand, this.onConfirm, this.onView, this.confirming = false});
 
   @override
   State<MatchCardWidget> createState() => _MatchCardWidgetState();
@@ -70,11 +71,19 @@ class _MatchCardWidgetState extends State<MatchCardWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextButton.icon(
-                      onPressed: () => setState(() => _open = !_open),
-                      icon: Icon(_open ? Icons.expand_less : Icons.expand_more, size: 18),
-                      label: Text(t('match.why')),
-                    ),
+                    Row(children: [
+                      TextButton.icon(
+                        onPressed: () => setState(() => _open = !_open),
+                        icon: Icon(_open ? Icons.expand_less : Icons.expand_more, size: 18),
+                        label: Text(t('match.why')),
+                      ),
+                      if (widget.onView != null)
+                        TextButton.icon(
+                          onPressed: widget.onView,
+                          icon: const Icon(Icons.open_in_new, size: 16),
+                          label: const Text('View'),
+                        ),
+                    ]),
                     if (widget.onConfirm != null)
                       FilledButton.tonalIcon(
                         onPressed: widget.confirming ? null : widget.onConfirm,
