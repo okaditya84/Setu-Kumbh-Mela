@@ -215,22 +215,22 @@ class _PrimaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Row(children: [
             Container(
-              width: 54, height: 54,
-              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(16)),
-              child: Icon(icon, color: iconColor, size: 26),
+              width: 64, height: 64,
+              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(20)),
+              child: Icon(icon, color: iconColor, size: 32),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 18),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
-                const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF111827))),
+                const SizedBox(height: 4),
+                Text(subtitle, style: const TextStyle(fontSize: 13.5, color: Color(0xFF6B7280))),
               ]),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFFD1D5DB)),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFFD1D5DB)),
           ]),
         ),
       ),
@@ -254,13 +254,13 @@ class _SecondaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 20, color: kSaffron),
-              const SizedBox(width: 8),
-              Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151))),
+              Icon(icon, size: 24, color: kSaffron),
+              const SizedBox(width: 10),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15.5, color: Color(0xFF374151))),
             ],
           ),
         ),
