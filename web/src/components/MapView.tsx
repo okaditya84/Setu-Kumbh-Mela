@@ -64,11 +64,11 @@ export default function MapView() {
     // Risk hotspots — translucent red circles sized by risk.
     for (const h of hotspots.hotspots || []) {
       L.circle([h.lat, h.lng], {
-        radius: 150 + (h.risk_score || 1) * 220,
+        radius: 70 + (h.risk_score || 1) * 70,
         color: "#ef4444",
         weight: 1,
         fillColor: "#ef4444",
-        fillOpacity: 0.12,
+        fillOpacity: 0.1,
       }).addTo(groups.current.hotspots);
     }
     // CCTV — small blue dots (hidden by default).
