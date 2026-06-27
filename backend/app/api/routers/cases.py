@@ -19,10 +19,23 @@ from app.schemas.models import (
     MatchResponse,
 )
 from app.services import case_service
-from app.services.match_service import build_match_response, decide_status_reunion
+from app.services.match_service import build_match_response, decide_status_reunion, preview as preview_matches
 from app.services.announce_service import make_announcement
 
 router = APIRouter(prefix="/cases", tags=["cases"])
+
+
+@router.post("/preview", response_model=MatchResponse)
+def preview_case(
+    payload: CaseCreate,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Search the registry for a draft WITHOUT registering it. The volunteer
+    reviews the extracted details + matches, then explicitly registers (POST /cases)."""
+    if not payload.reporting_center and user.center:
+        payload.reporting_center = user.center
+    return preview_matches(db, payload)
 
 
 @router.post("", response_model=MatchResponse, status_code=status.HTTP_201_CREATED)

@@ -112,6 +112,29 @@ class MatchResponse {
         totalConsidered = j['total_considered'] ?? 0;
 }
 
+class NotificationItem {
+  final String id;
+  final String kind, title, body;
+  final String? caseId, relatedCaseId;
+  final double? probability;
+  bool read;
+  final String? createdAt;
+
+  NotificationItem.fromJson(Map<String, dynamic> j)
+      : id = j['id'].toString(),
+        kind = j['kind'] ?? '',
+        title = j['title'] ?? '',
+        body = j['body'] ?? '',
+        caseId = j['case_id']?.toString(),
+        relatedCaseId = j['related_case_id']?.toString(),
+        probability = (j['probability'] as num?)?.toDouble(),
+        read = j['read'] ?? false,
+        createdAt = j['created_at']?.toString();
+
+  /// The case to open when this notification is tapped.
+  String? get targetCaseId => relatedCaseId ?? caseId;
+}
+
 class IntakeDraft {
   final String? caseType, personName, gender, ageBand, language, state, district, lastSeenLocation, physicalDescription;
   final List<String> colors, stable;

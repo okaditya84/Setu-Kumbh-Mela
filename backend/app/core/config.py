@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     DATA_DIR: str = "data"
     SEED_ON_STARTUP: bool = True  # load reference geo + (optionally) sample cases
     SEED_SAMPLE_CASES: bool = True  # load the 2,500 synthetic missing-person rows
+    # On top of the official 2,500, generate a realistic, diverse population
+    # (both missing AND found, planted true cross-center pairs) up to this total.
+    SEED_TARGET_TOTAL: int = 9000
+    SEED_FOUND_RATIO: float = 0.40       # share of generated cases that are "found"
+    SEED_PLANTED_PAIRS: int = 350        # true missing/found pairs to plant
 
     # ----------------------------- LLM (optional) -------------------------
     # provider: openai | anthropic | gemini | openrouter | deepseek | groq |
@@ -107,6 +112,16 @@ class Settings(BaseSettings):
     FACE_STRONG_SIM: float = 0.82
     FACE_WEAK_SIM: float = 0.55
 
+    # ----------------------------- Text-to-Speech (optional) --------------
+    # Speaks announcements in real Indian-language audio (browsers lack most
+    # Indian TTS voices). provider: sarvam | elevenlabs | none | "" (auto).
+    # When blank, falls back to the Sarvam VOICE_* credentials if available.
+    TTS_PROVIDER: str = ""
+    TTS_API_KEY: Optional[str] = None
+    TTS_MODEL: Optional[str] = None        # e.g. "bulbul:v2"
+    TTS_SPEAKER: Optional[str] = None       # e.g. "anushka"
+    TTS_BASE_URL: Optional[str] = None
+
     # ----------------------------- Maps -----------------------------------
     # The web/mobile clients use OpenStreetMap (no key). A MapTiler/Stadia key
     # is optional for prettier vector tiles; clients read this from /api/v1/config.
@@ -156,6 +171,12 @@ class Settings(BaseSettings):
     MATCH_AUTO_THRESHOLD: float = 0.82    # show as "strong match"
     MATCH_REVIEW_THRESHOLD: float = 0.55  # show as "possible match"
     MATCH_MAX_CANDIDATES: int = 25
+    # Candidates below this probability are noise — never shown to the operator
+    # (kills the "everyone is an 8% match" effect on a thin query).
+    MATCH_DISPLAY_FLOOR: float = 0.45
+    # A cross-center match at/above this probability raises notifications to BOTH
+    # the missing and found reporting centers.
+    NOTIFY_THRESHOLD: float = 0.72
     # If more than this many candidates cluster above the review threshold with
     # little score separation, the engine asks disambiguating questions instead
     # of dumping a long list.

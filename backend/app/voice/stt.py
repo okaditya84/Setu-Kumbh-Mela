@@ -48,13 +48,44 @@ def _deepgram(blob: bytes, content_type: str, lang: str) -> Optional[str]:
         return r.json()["results"]["channels"][0]["alternatives"][0]["transcript"] or None
 
 
+# Valid Sarvam language codes (per docs) + a name->code map. Anything we can't
+# confidently resolve becomes "unknown" so Sarvam AUTO-DETECTS the spoken language.
+_SARVAM_CODES = {
+    "unknown", "hi-IN", "bn-IN", "kn-IN", "ml-IN", "mr-IN", "od-IN", "pa-IN", "ta-IN",
+    "te-IN", "en-IN", "gu-IN", "as-IN", "ur-IN", "ne-IN", "kok-IN", "ks-IN", "sd-IN",
+    "sa-IN", "sat-IN", "mni-IN", "brx-IN", "mai-IN", "doi-IN",
+}
+_SARVAM_NAMES = {
+    "english": "en-IN", "hindi": "hi-IN", "marathi": "mr-IN", "bengali": "bn-IN",
+    "tamil": "ta-IN", "telugu": "te-IN", "gujarati": "gu-IN", "kannada": "kn-IN",
+    "malayalam": "ml-IN", "punjabi": "pa-IN", "odia": "od-IN", "oriya": "od-IN",
+    "assamese": "as-IN", "urdu": "ur-IN", "nepali": "ne-IN", "konkani": "kok-IN",
+    "sanskrit": "sa-IN", "maithili": "mai-IN", "kashmiri": "ks-IN", "sindhi": "sd-IN",
+    "santali": "sat-IN", "manipuri": "mni-IN", "bodo": "brx-IN", "dogri": "doi-IN",
+}
+
+
+def _sarvam_lang(lang: Optional[str]) -> str:
+    if not lang:
+        return "unknown"
+    s = lang.strip()
+    if s in _SARVAM_CODES:
+        return s
+    low = s.lower()
+    if low in _SARVAM_NAMES:
+        return _SARVAM_NAMES[low]
+    cand = f"{low[:2]}-IN"
+    if cand in _SARVAM_CODES:
+        return cand
+    return "unknown"  # let Sarvam auto-detect
+
+
 def _sarvam(blob: bytes, content_type: str, lang: str) -> Optional[str]:
     base = settings.VOICE_BASE_URL or "https://api.sarvam.ai"
-    model = settings.VOICE_MODEL or "saarika:v2"
-    # Sarvam expects an ISO language tag like "hi-IN".
-    lang_code = lang if "-" in lang else f"{lang}-IN"
-    files = {"file": ("audio", blob, content_type)}
-    data = {"model": model, "language_code": lang_code}
+    model = settings.VOICE_MODEL or "saarika:v2.5"
+    ext = (content_type.split("/")[-1] or "webm").split(";")[0]
+    files = {"file": (f"audio.{ext}", blob, content_type)}
+    data = {"model": model, "language_code": _sarvam_lang(lang)}
     headers = {"api-subscription-key": settings.VOICE_API_KEY}
     with httpx.Client(timeout=60) as c:
         r = c.post(f"{base}/speech-to-text", files=files, data=data, headers=headers)

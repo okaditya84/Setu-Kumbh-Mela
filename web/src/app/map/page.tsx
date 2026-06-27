@@ -27,6 +27,7 @@ export default function MapPage() {
   const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const rafRef = useRef<number | null>(null);
   const [shown, setShown] = useState<Record<LayerKey, boolean>>({
     cases: true,
     hotspots: true,
@@ -48,9 +49,12 @@ export default function MapPage() {
     mapRef.current = map;
     map.on("load", async () => {
       await addData(map);
+      startPulse(map);
       setReady(true);
     });
     return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
       map.remove();
       mapRef.current = null;
     };
@@ -116,6 +120,17 @@ export default function MapPage() {
       type: "geojson",
       data: fc((cases.cases || []).map((c: any) => pt(c.lng, c.lat, c))),
     });
+    // Expanding "pulse" halo beneath the solid case pins to draw attention.
+    map.addLayer({
+      id: "cases-pulse",
+      type: "circle",
+      source: "cases",
+      paint: {
+        "circle-radius": 8,
+        "circle-color": ["match", ["get", "case_type"], "missing", "#ea580c", "found", "#0d9488", "#64748b"],
+        "circle-opacity": 0.4,
+      },
+    });
     map.addLayer({
       id: "cases",
       type: "circle",
@@ -142,11 +157,35 @@ export default function MapPage() {
     map.on("mouseleave", "cases", () => (map.getCanvas().style.cursor = ""));
   }
 
+  // Smoothly pulse the open-case halo so the pins visibly "blink".
+  function startPulse(map: maplibregl.Map) {
+    const period = 1600; // ms per pulse cycle
+    const loop = (ts: number) => {
+      if (!map.getLayer("cases-pulse")) return;
+      const phase = (ts % period) / period; // 0..1
+      // Ease the radius outward and fade opacity as it expands.
+      const radius = 8 + phase * 16; // 8 -> 24 px
+      const opacity = 0.45 * (1 - phase); // 0.45 -> 0
+      try {
+        map.setPaintProperty("cases-pulse", "circle-radius", radius);
+        map.setPaintProperty("cases-pulse", "circle-opacity", opacity);
+      } catch {
+        return;
+      }
+      rafRef.current = requestAnimationFrame(loop);
+    };
+    rafRef.current = requestAnimationFrame(loop);
+  }
+
   function toggle(k: LayerKey) {
     const map = mapRef.current;
     if (!map || !map.getLayer(k)) return;
     const next = !shown[k];
     map.setLayoutProperty(k, "visibility", next ? "visible" : "none");
+    // The open-case pins have a paired pulse halo — toggle it together.
+    if (k === "cases" && map.getLayer("cases-pulse")) {
+      map.setLayoutProperty("cases-pulse", "visibility", next ? "visible" : "none");
+    }
     setShown((s) => ({ ...s, [k]: next }));
   }
 
@@ -161,7 +200,7 @@ export default function MapPage() {
     <AppFrame>
       <h1 className="text-xl font-extrabold mb-3">{t("map.title")}</h1>
       <div className="card overflow-hidden">
-        <div ref={ref} className="h-[60vh] w-full" />
+        <div ref={ref} className="h-[60vh] lg:h-[72vh] w-full" />
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         {legend.map((l) => (

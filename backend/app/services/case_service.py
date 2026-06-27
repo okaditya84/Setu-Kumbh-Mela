@@ -65,8 +65,10 @@ def _merge_enrichment(normalized: dict, enriched: Optional[dict]) -> dict:
     return out
 
 
-def create_case(db: Session, payload: CaseCreate, actor: str = "system",
-                use_llm: bool = True, source: str = "api") -> Case:
+def build_case(db: Session, payload: CaseCreate, actor: str = "system",
+               use_llm: bool = True, source: str = "api", transient: bool = False) -> Case:
+    """Construct a Case from a payload WITHOUT persisting it (shared by create + preview)."""
+    import uuid as _uuid_mod
     # Normalize case_type defensively.
     ctype = CaseType.found.value if str(payload.case_type).lower().startswith("f") else CaseType.missing.value
 
@@ -89,7 +91,7 @@ def create_case(db: Session, payload: CaseCreate, actor: str = "system",
 
     case = Case(
         client_uuid=payload.client_uuid or None,
-        case_id=next_case_id(db),
+        case_id="PREVIEW" if transient else next_case_id(db),
         case_type=ctype,
         status=CaseStatus.pending.value,
         person_name=(payload.person_name or None),
@@ -118,12 +120,26 @@ def create_case(db: Session, payload: CaseCreate, actor: str = "system",
         created_by=actor,
         source=source,
     )
+    if transient:
+        # Give it a stable id so the matcher can exclude self, but never persist.
+        case.id = _uuid_mod.uuid4().hex
+    return case
+
+
+def build_transient_case(db: Session, payload: CaseCreate, use_llm: bool = False) -> Case:
+    """A non-persisted Case for previewing matches before the volunteer confirms."""
+    return build_case(db, payload, actor="preview", use_llm=use_llm, source="preview", transient=True)
+
+
+def create_case(db: Session, payload: CaseCreate, actor: str = "system",
+                use_llm: bool = True, source: str = "api") -> Case:
+    case = build_case(db, payload, actor=actor, use_llm=use_llm, source=source)
     if case.client_uuid is None:
         case.client_uuid = case.id
     db.add(case)
     db.flush()
     audit(db, "case.create", actor=actor, entity_type="case", entity_id=case.id,
-          meta={"case_type": ctype, "center": payload.reporting_center})
+          meta={"case_type": case.case_type, "center": payload.reporting_center})
     return case
 
 

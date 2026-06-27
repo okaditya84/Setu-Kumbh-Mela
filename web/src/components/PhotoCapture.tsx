@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, RotateCcw, AlertCircle } from "lucide-react";
 import { useI18n } from "@/i18n";
 
@@ -36,17 +36,23 @@ export function PhotoCapture({ value, onChange }: Props) {
         audio: false,
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-      setStreaming(true);
+      setStreaming(true); // render the <video> first; effect attaches the stream
     } catch {
       // Permission denied or no camera API → fall back to the OS file/camera picker.
       setError(t("intake.permCam"));
       fileRef.current?.click();
     }
   }
+
+  // Attach the stream only AFTER the <video> element is in the DOM (fixes black
+  // preview: setting srcObject before render hit a null ref).
+  useEffect(() => {
+    if (streaming && streamRef.current && videoRef.current) {
+      const v = videoRef.current;
+      v.srcObject = streamRef.current;
+      v.play().catch(() => {});
+    }
+  }, [streaming]);
 
   function snap() {
     const v = videoRef.current;

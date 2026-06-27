@@ -110,6 +110,7 @@ class MatchResponse(BaseModel):
     needs_disambiguation: bool
     disambiguation_questions: List[Dict[str, Any]]
     total_considered: int
+    no_query_signal: bool = False
 
 
 class MatchDecision(BaseModel):

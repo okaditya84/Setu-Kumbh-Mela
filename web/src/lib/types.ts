@@ -88,6 +88,18 @@ export interface IntakeDraft {
   source?: string;
 }
 
+export interface NotificationOut {
+  id: string;
+  kind: string;
+  title: string;
+  body: string;
+  case_id?: string | null;
+  related_case_id?: string | null;
+  probability?: number | null;
+  read: boolean;
+  created_at: string;
+}
+
 export interface AuthInfo {
   access_token: string;
   role: "admin" | "volunteer";

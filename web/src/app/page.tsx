@@ -6,14 +6,17 @@ import { AppFrame } from "@/components/AppFrame";
 import { useI18n } from "@/i18n";
 import { api, getAuth } from "@/lib/api";
 import type { CaseOut } from "@/lib/types";
-import { Chip } from "@/components/ui";
+import type { AuthInfo } from "@/lib/types";
+import { CaseBadges } from "@/components/CaseBadges";
 
 export default function HomePage() {
   const { t } = useI18n();
   const [recent, setRecent] = useState<CaseOut[]>([]);
-  const auth = typeof window !== "undefined" ? getAuth() : null;
+  // Read auth only after mount so server and first client render match (no hydration mismatch).
+  const [auth, setAuthInfo] = useState<AuthInfo | null>(null);
 
   useEffect(() => {
+    setAuthInfo(getAuth());
     api.listCases({ limit: "8" }).then(setRecent).catch(() => {});
   }, []);
 
@@ -23,7 +26,7 @@ export default function HomePage() {
         {t("home.greeting")}{auth?.full_name ? `, ${auth.full_name}` : ""} 🙏
       </p>
 
-      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Link href="/intake?type=missing" className="card p-5 hover:shadow-md transition group">
           <div className="grid h-12 w-12 place-items-center rounded-xl bg-saffron-100 text-saffron-700 mb-3">
             <Search className="h-6 w-6" />
@@ -38,17 +41,18 @@ export default function HomePage() {
           <p className="font-bold text-lg">{t("home.reportFound")}</p>
           <p className="text-sm text-slate-500">{t("home.reportFoundSub")}</p>
         </Link>
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <Link href="/map" className="card p-4 flex items-center gap-3 hover:shadow-md transition">
-          <Map className="h-6 w-6 text-slate-400" />
-          <span className="font-semibold">{t("home.viewMap")}</span>
+        <Link href="/map" className="card p-5 flex flex-row sm:flex-col items-center sm:items-start gap-3 hover:shadow-md transition">
+          <div className="grid h-12 w-12 place-items-center rounded-xl bg-slate-100 text-slate-500 sm:mb-3">
+            <Map className="h-6 w-6" />
+          </div>
+          <span className="font-bold text-lg">{t("home.viewMap")}</span>
         </Link>
         {auth?.role === "admin" && (
-          <Link href="/admin" className="card p-4 flex items-center gap-3 hover:shadow-md transition">
-            <Activity className="h-6 w-6 text-slate-400" />
-            <span className="font-semibold">{t("home.adminPanel")}</span>
+          <Link href="/admin" className="card p-5 flex flex-row sm:flex-col items-center sm:items-start gap-3 hover:shadow-md transition">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-slate-100 text-slate-500 sm:mb-3">
+              <Activity className="h-6 w-6" />
+            </div>
+            <span className="font-bold text-lg">{t("home.adminPanel")}</span>
           </Link>
         )}
       </div>
@@ -59,18 +63,16 @@ export default function HomePage() {
           {t("nav.cases")} <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
-      <div className="mt-2 space-y-2">
+      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
         {recent.map((c) => (
-          <Link key={c.id} href={`/case/${c.id}`} className="card p-3 flex items-center justify-between">
+          <Link key={c.id} href={`/case/${c.id}`} className="card p-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-semibold truncate">{c.person_name || t("common.unknown")}</p>
               <p className="text-xs text-slate-500">
                 {c.case_id} · {c.gender} · {c.age_band} · {c.last_seen_location}
               </p>
             </div>
-            <Chip color={c.case_type === "missing" ? "saffron" : "teal"}>
-              {c.case_type === "missing" ? t("common.missing") : t("common.found")}
-            </Chip>
+            <CaseBadges caseType={c.case_type} status={c.status} t={t} />
           </Link>
         ))}
         {recent.length === 0 && <p className="text-sm text-slate-400 py-6 text-center">{t("common.loading")}</p>}

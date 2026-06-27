@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../i18n/strings.dart';
@@ -5,12 +7,47 @@ import '../services/auth.dart';
 import '../services/sync.dart';
 import '../theme.dart';
 import '../widgets/language_sheet.dart';
+import '../widgets/responsive.dart';
 import 'intake_screen.dart';
 import 'map_screen.dart';
 import 'cases_screen.dart';
+import 'notifications_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _unread = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshUnread();
+    _timer = Timer.periodic(const Duration(seconds: 15), (_) => _refreshUnread());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _refreshUnread() async {
+    try {
+      final n = await context.read<AuthProvider>().api.unreadCount();
+      if (mounted && n != _unread) setState(() => _unread = n);
+    } catch (_) {}
+  }
+
+  Future<void> _openNotifications() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+    await _refreshUnread();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,12 +63,14 @@ class HomeScreen extends StatelessWidget {
           Text(t('app.name'), style: const TextStyle(fontWeight: FontWeight.w900)),
         ]),
         actions: [
+          _BellButton(unread: _unread, onTap: _openNotifications),
           IconButton(onPressed: () => showLanguageSheet(context), icon: const Icon(Icons.language)),
           IconButton(onPressed: () => context.read<AuthProvider>().logout(), icon: const Icon(Icons.logout)),
         ],
       ),
       body: SafeArea(
-        child: ListView(
+        child: ResponsiveBody(
+          child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             if (!sync.online || sync.pending > 0)
@@ -65,8 +104,40 @@ class HomeScreen extends StatelessWidget {
               Expanded(child: _SmallAction(icon: Icons.list_alt, label: t('home.cases'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CasesScreen())))),
             ]),
           ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _BellButton extends StatelessWidget {
+  final int unread;
+  final VoidCallback onTap;
+  const _BellButton({required this.unread, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        IconButton(onPressed: onTap, icon: const Icon(Icons.notifications_none)),
+        if (unread > 0)
+          Positioned(
+            top: 8,
+            right: 6,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+              decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(10)),
+              alignment: Alignment.center,
+              child: Text(
+                unread > 99 ? '99+' : '$unread',
+                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

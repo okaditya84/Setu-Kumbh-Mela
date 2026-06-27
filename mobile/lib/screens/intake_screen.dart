@@ -1,9 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:record/record.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:convert';
 
 import '../config.dart';
 import '../i18n/strings.dart';
@@ -13,6 +18,7 @@ import '../services/local_db.dart';
 import '../services/sync.dart';
 import '../theme.dart';
 import '../widgets/match_card.dart';
+import '../widgets/responsive.dart';
 import 'case_detail_screen.dart';
 
 class IntakeScreen extends StatefulWidget {
@@ -24,9 +30,10 @@ class IntakeScreen extends StatefulWidget {
 
 class _IntakeScreenState extends State<IntakeScreen> {
   final _stt = SpeechToText();
+  final _rec = AudioRecorder();
   final _draft = CaseDraft();
   final _picker = ImagePicker();
-  bool _sttReady = false, _listening = false, _submitting = false, _parsing = false;
+  bool _sttReady = false, _listening = false, _recording = false, _submitting = false, _parsing = false;
   String _heard = '';
   String? _photoB64;
   MatchResponse? _matches;
@@ -46,46 +53,109 @@ class _IntakeScreenState extends State<IntakeScreen> {
     }).then((ok) => setState(() => _sttReady = ok));
   }
 
-  Future<void> _toggleListen() async {
-    final locale = context.read<AppStrings>().lang.speechLocale;
-    if (_listening) {
-      await _stt.stop();
-      setState(() => _listening = false);
-      await _parse();
+  @override
+  void dispose() {
+    _rec.dispose();
+    super.dispose();
+  }
+
+  /// Big voice button. We RECORD the audio and let the server auto-detect the
+  /// spoken language — independent of the UI language — so the reporter can
+  /// speak any language. On-device speech_to_text is only an offline fallback.
+  Future<void> _toggleRecord() async {
+    if (_recording) {
+      String? path;
+      try {
+        path = await _rec.stop();
+      } catch (_) {}
+      setState(() => _recording = false);
+      if (path != null) await _transcribeRecording(path);
       return;
     }
+    if (_listening) {
+      // Tapping again while the STT fallback is running stops it.
+      await _stt.stop();
+      setState(() => _listening = false);
+      await _parseTranscript(_heard);
+      return;
+    }
+    if (!await _rec.hasPermission()) {
+      await _startOnDeviceFallback();
+      return;
+    }
+    try {
+      final dir = await getTemporaryDirectory();
+      final path = p.join(dir.path, 'intake_${DateTime.now().millisecondsSinceEpoch}.m4a');
+      await _rec.start(const RecordConfig(), path: path);
+      setState(() {
+        _recording = true;
+        _heard = '';
+      });
+    } catch (_) {
+      await _startOnDeviceFallback();
+    }
+  }
+
+  /// Sends recorded audio to the server for auto-detect transcription + draft.
+  /// Falls back to on-device speech_to_text if the server call fails.
+  Future<void> _transcribeRecording(String path) async {
+    setState(() => _parsing = true);
+    try {
+      final api = context.read<AuthProvider>().api;
+      final bytes = await File(path).readAsBytes();
+      final res = await api.intakeVoice(bytes, caseType: widget.caseType);
+      final transcript = res['transcript']?.toString() ?? '';
+      final draft = res['draft'] as Map?;
+      setState(() {
+        _heard = transcript;
+        if (draft != null) _applyDraft(IntakeDraft.fromJson(draft.cast<String, dynamic>()), transcript);
+      });
+    } catch (_) {
+      // No connectivity / server STT unavailable -> on-device fallback.
+      await _startOnDeviceFallback();
+    } finally {
+      if (mounted) setState(() => _parsing = false);
+    }
+  }
+
+  /// On-device speech_to_text fallback. We deliberately do NOT force the UI
+  /// language as the spoken language — leave localeId unset so the device
+  /// default is used.
+  Future<void> _startOnDeviceFallback() async {
     if (!_sttReady) return;
     setState(() {
       _listening = true;
       _heard = '';
     });
     await _stt.listen(
-      localeId: locale,
       listenOptions: SpeechListenOptions(partialResults: true),
       onResult: (r) => setState(() => _heard = r.recognizedWords),
     );
   }
 
-  Future<void> _parse() async {
-    if (_heard.trim().isEmpty) return;
+  Future<void> _parseTranscript(String transcript) async {
+    if (transcript.trim().isEmpty) return;
     setState(() => _parsing = true);
     try {
       final api = context.read<AuthProvider>().api;
-      final d = await api.parseText(_heard, widget.caseType);
-      setState(() {
-        _name.text = d.personName ?? _name.text;
-        _draft.gender = d.gender ?? _draft.gender;
-        _draft.ageBand = d.ageBand ?? _draft.ageBand;
-        _draft.language = d.language ?? _draft.language;
-        _draft.state = d.state ?? _draft.state;
-        _draft.lastSeenLocation = d.lastSeenLocation ?? _draft.lastSeenLocation;
-        _desc.text = d.physicalDescription ?? _heard;
-      });
+      final d = await api.parseText(transcript, widget.caseType);
+      setState(() => _applyDraft(d, transcript));
     } catch (_) {
-      _desc.text = _heard;
+      _desc.text = transcript;
     } finally {
-      setState(() => _parsing = false);
+      if (mounted) setState(() => _parsing = false);
     }
+  }
+
+  /// Prefills the form from a parsed draft (shared by server + on-device paths).
+  void _applyDraft(IntakeDraft d, String transcript) {
+    _name.text = d.personName ?? _name.text;
+    _draft.gender = d.gender ?? _draft.gender;
+    _draft.ageBand = d.ageBand ?? _draft.ageBand;
+    _draft.language = d.language ?? _draft.language;
+    _draft.state = d.state ?? _draft.state;
+    _draft.lastSeenLocation = d.lastSeenLocation ?? _draft.lastSeenLocation;
+    _desc.text = d.physicalDescription ?? (transcript.isNotEmpty ? transcript : _desc.text);
   }
 
   Future<void> _takePhoto() async {
@@ -95,7 +165,20 @@ class _IntakeScreenState extends State<IntakeScreen> {
     setState(() => _photoB64 = 'data:image/jpeg;base64,${base64Encode(bytes)}');
   }
 
+  /// True when the report has no usable identifying data at all, so we should
+  /// not let a blank report be submitted to the matcher.
+  bool get _isEmpty =>
+      _name.text.trim().isEmpty &&
+      _desc.text.trim().isEmpty &&
+      _draft.gender == null &&
+      _draft.ageBand == null &&
+      (_draft.language == null || _draft.language!.isEmpty) &&
+      (_draft.state == null || _draft.state!.isEmpty) &&
+      (_draft.lastSeenLocation == null || _draft.lastSeenLocation!.isEmpty) &&
+      _photoB64 == null;
+
   Future<void> _submit() async {
+    if (_isEmpty) return;
     setState(() => _submitting = true);
     _draft
       ..clientUuid = const Uuid().v4()
@@ -167,7 +250,8 @@ class _IntakeScreenState extends State<IntakeScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: SafeArea(
-        child: ListView(
+        child: ResponsiveBody(
+          child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             if (_matches == null && !_savedOffline) ...[
@@ -175,22 +259,25 @@ class _IntakeScreenState extends State<IntakeScreen> {
               Card(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
-                  child: Column(children: [
+                  child: Builder(builder: (context) {
+                    final active = _recording || _listening;
+                    return Column(children: [
                     GestureDetector(
-                      onTap: _toggleListen,
+                      onTap: _toggleRecord,
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         width: 128, height: 128,
-                        decoration: BoxDecoration(color: _listening ? Colors.red : kSaffron, shape: BoxShape.circle, boxShadow: [BoxShadow(color: (_listening ? Colors.red : kSaffron).withOpacity(0.4), blurRadius: 24, spreadRadius: _listening ? 8 : 2)]),
-                        child: Icon(_listening ? Icons.stop : Icons.mic, color: Colors.white, size: 56),
+                        decoration: BoxDecoration(color: active ? Colors.red : kSaffron, shape: BoxShape.circle, boxShadow: [BoxShadow(color: (active ? Colors.red : kSaffron).withOpacity(0.4), blurRadius: 24, spreadRadius: active ? 8 : 2)]),
+                        child: Icon(active ? Icons.stop : Icons.mic, color: Colors.white, size: 56),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(_listening ? t('intake.listening') : t('intake.tapToSpeak'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(active ? t('intake.listening') : t('intake.tapToSpeak'), style: const TextStyle(fontWeight: FontWeight.bold)),
                     if (_heard.isNotEmpty) Padding(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6), child: Text('“$_heard”', style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.black54), textAlign: TextAlign.center)),
                     if (_parsing) const Padding(padding: EdgeInsets.only(top: 8), child: Text('✨', style: TextStyle(fontSize: 18))),
-                    if (!_sttReady && !_listening) Padding(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6), child: Text(t('intake.speakHint'), style: const TextStyle(fontSize: 12, color: Colors.black38), textAlign: TextAlign.center)),
-                  ]),
+                    if (!active && _heard.isEmpty && !_parsing) Padding(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6), child: Text(t('intake.speakHint'), style: const TextStyle(fontSize: 12, color: Colors.black38), textAlign: TextAlign.center)),
+                  ]);
+                  }),
                 ),
               ),
               const SizedBox(height: 8),
@@ -198,12 +285,19 @@ class _IntakeScreenState extends State<IntakeScreen> {
               const SizedBox(height: 8),
               _form(t),
               const SizedBox(height: 16),
-              FilledButton.icon(onPressed: _submitting ? null : _submit, icon: const Icon(Icons.send), label: Text(t('intake.submit'))),
+              FilledButton.icon(onPressed: (_submitting || _isEmpty) ? null : _submit, icon: const Icon(Icons.send), label: Text(t('intake.submit'))),
+              if (_isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text('Add at least one detail (name, description, gender, age, language, location or photo) to search.',
+                      style: TextStyle(fontSize: 12, color: Colors.black45), textAlign: TextAlign.center),
+                ),
             ],
             if (_submitting) Padding(padding: const EdgeInsets.all(24), child: Column(children: [const CircularProgressIndicator(color: kSaffron), const SizedBox(height: 12), Text(t('intake.scanning'))])),
             if (_savedOffline) Padding(padding: const EdgeInsets.all(24), child: Column(children: [const Icon(Icons.wifi_off, color: Colors.amber, size: 56), const SizedBox(height: 12), Text(t('common.offline'), textAlign: TextAlign.center)])),
             if (_matches != null) ..._results(t),
           ],
+          ),
         ),
       ),
     );
@@ -214,7 +308,7 @@ class _IntakeScreenState extends State<IntakeScreen> {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(children: [
-          TextField(controller: _name, decoration: InputDecoration(labelText: t('intake.name'))),
+          TextField(controller: _name, onChanged: (_) => setState(() {}), decoration: InputDecoration(labelText: t('intake.name'))),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _draft.gender,
@@ -237,7 +331,7 @@ class _IntakeScreenState extends State<IntakeScreen> {
             onChanged: (v) => setState(() => _draft.language = v),
           ),
           const SizedBox(height: 12),
-          TextField(controller: _desc, maxLines: 2, decoration: InputDecoration(labelText: t('intake.description'))),
+          TextField(controller: _desc, maxLines: 2, onChanged: (_) => setState(() {}), decoration: InputDecoration(labelText: t('intake.description'))),
           const SizedBox(height: 12),
           TextField(controller: _mobile, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: t('intake.mobile'))),
           const SizedBox(height: 12),

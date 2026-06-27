@@ -1,6 +1,6 @@
 "use client";
 import { API } from "./config";
-import type { AuthInfo, CaseDraft, CaseOut, IntakeDraft, MatchResponse } from "./types";
+import type { AuthInfo, CaseDraft, CaseOut, IntakeDraft, MatchResponse, NotificationOut } from "./types";
 
 const TOKEN_KEY = "setu.auth";
 
@@ -83,11 +83,39 @@ export const api = {
       `/cases/${id}/announcement${language ? `?language=${encodeURIComponent(language)}` : ""}`
     ),
 
+  // Server-side text-to-speech in the target language. Returns a WAV Blob on
+  // success, or null when the backend has no TTS for that language (HTTP 204).
+  tts: async (text: string, language: string): Promise<Blob | null> => {
+    const a = getAuth();
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (a) headers.Authorization = `Bearer ${a.access_token}`;
+    const res = await fetch(`${API}/tts`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ text, language }),
+    });
+    if (res.status === 204) return null;
+    if (!res.ok) throw new ApiError(res.status, "TTS failed");
+    return await res.blob();
+  },
+
   parseText: (transcript: string, case_type?: string) =>
     req<{ transcript: string; draft: IntakeDraft }>("/intake/parse", {
       method: "POST",
       body: JSON.stringify({ transcript, case_type }),
     }),
+
+  // Primary STT path. Pass language="" so the backend auto-detects the spoken language.
+  intakeVoice: (blob: Blob, case_type?: string, language = "") => {
+    const fd = new FormData();
+    fd.append("file", blob, "voice.webm");
+    if (case_type) fd.append("case_type", case_type);
+    fd.append("language", language);
+    return req<{ transcript: string; draft: IntakeDraft; stt_available: boolean }>("/intake/voice", {
+      method: "POST",
+      body: fd,
+    });
+  },
 
   uploadVoice: (caseId: string, blob: Blob, kind = "description", language = "") => {
     const fd = new FormData();
@@ -98,6 +126,17 @@ export const api = {
   },
   listVoice: (caseId: string) => req<any[]>(`/cases/${caseId}/voice`),
   audioUrl: (sampleId: string) => `${API}/voice/${sampleId}/audio`,
+  // The audio endpoint requires the bearer token, so a plain <audio src> 401s.
+  // Fetch it with auth and return an object URL the caller plays (and revokes).
+  audioBlobUrl: async (sampleId: string): Promise<string> => {
+    const a = getAuth();
+    const res = await fetch(`${API}/voice/${sampleId}/audio`, {
+      headers: a ? { Authorization: `Bearer ${a.access_token}` } : undefined,
+    });
+    if (!res.ok) throw new ApiError(res.status, "Audio fetch failed");
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  },
 
   verify: (caseId: string, answer: string) =>
     req<{ verified: boolean; message: string }>(`/cases/${caseId}/verify`, {
@@ -118,6 +157,16 @@ export const api = {
 
   syncPush: (cases: CaseDraft[]) =>
     req<any>("/sync/push", { method: "POST", body: JSON.stringify({ cases }) }),
+
+  // Center notifications (scoped to the logged-in operator's center).
+  listNotifications: () =>
+    req<{ notifications: NotificationOut[] }>("/notifications"),
+  notificationsUnreadCount: () =>
+    req<{ count: number }>("/notifications/unread-count"),
+  markNotificationRead: (id: string) =>
+    req<{ ok: boolean }>(`/notifications/${id}/read`, { method: "POST" }),
+  markAllNotificationsRead: () =>
+    req<{ ok: boolean }>("/notifications/read-all", { method: "POST" }),
 };
 
 export { ApiError };

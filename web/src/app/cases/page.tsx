@@ -6,7 +6,7 @@ import { AppFrame } from "@/components/AppFrame";
 import { useI18n } from "@/i18n";
 import { api } from "@/lib/api";
 import type { CaseOut } from "@/lib/types";
-import { Chip } from "@/components/ui";
+import { CaseBadges } from "@/components/CaseBadges";
 
 export default function CasesPage() {
   const { t } = useI18n();
@@ -39,7 +39,7 @@ export default function CasesPage() {
           e.preventDefault();
           load();
         }}
-        className="flex gap-2 mb-3"
+        className="flex gap-2 mb-3 max-w-2xl"
       >
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -64,26 +64,21 @@ export default function CasesPage() {
         ))}
       </div>
 
-      <div className="space-y-2">
-        {loading && <p className="text-center text-slate-400 py-6">{t("common.loading")}</p>}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+        {loading && <p className="col-span-full text-center text-slate-400 py-6">{t("common.loading")}</p>}
         {!loading &&
           cases.map((c) => (
-            <Link key={c.id} href={`/case/${c.id}`} className="card p-3 flex items-center justify-between">
+            <Link key={c.id} href={`/case/${c.id}`} className="card p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="font-semibold truncate">{c.person_name || t("common.unknown")}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 truncate">
                   {c.case_id} · {c.gender} · {c.age_band} · {c.language} · {c.last_seen_location}
                 </p>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <Chip color={c.case_type === "missing" ? "saffron" : "teal"}>
-                  {c.case_type === "missing" ? t("common.missing") : t("common.found")}
-                </Chip>
-                <Chip color={c.status === "Reunited" ? "green" : "slate"}>{c.status}</Chip>
-              </div>
+              <CaseBadges caseType={c.case_type} status={c.status} t={t} />
             </Link>
           ))}
-        {!loading && cases.length === 0 && <p className="text-center text-slate-400 py-6">—</p>}
+        {!loading && cases.length === 0 && <p className="col-span-full text-center text-slate-400 py-6">—</p>}
       </div>
     </AppFrame>
   );

@@ -12,6 +12,7 @@ Two purposes:
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser, get_current_user
@@ -20,7 +21,7 @@ from app.db.base import get_db
 from app.db.models import Case, VoiceSample
 from app.schemas.models import VerifyRequest, VerifyResponse, VoiceOut
 from app.services.case_service import audit
-from app.voice import storage, stt
+from app.voice import storage, stt, tts
 
 router = APIRouter(tags=["voice"])
 
@@ -47,13 +48,31 @@ async def upload_voice(
     storage_key, url = storage.save(blob, f"{sample.id}.{ext}", content_type)
     sample.storage_key = storage_key
     sample.url = url
-    # Best-effort transcription (optional provider).
-    sample.transcript = stt.transcribe(blob, content_type, language or case.language)
+    # Best-effort transcription with AUTO-DETECT (spoken language is independent
+    # of the UI / stored language hint).
+    sample.transcript = stt.transcribe(blob, content_type, None)
     db.add(sample)
     audit(db, "voice.upload", actor=user.id, entity_type="case", entity_id=case.id, meta={"kind": kind})
     db.commit()
     db.refresh(sample)
     return VoiceOut.model_validate(sample)
+
+
+class TtsRequest(BaseModel):
+    text: str
+    language: str = "Hindi"
+
+
+@router.post("/tts")
+def text_to_speech(payload: TtsRequest, user: CurrentUser = Depends(get_current_user)):
+    """Synthesize real audio for any supported Indian language (browsers can't).
+    Returns 204 when TTS is unavailable/unsupported so the client falls back to
+    on-device speech synthesis."""
+    result = tts.synthesize(payload.text, payload.language)
+    if not result:
+        return Response(status_code=204)
+    audio, content_type = result
+    return Response(content=audio, media_type=content_type)
 
 
 @router.get("/voice/{sample_id}/audio")

@@ -16,7 +16,7 @@ export function LanguageSwitcher() {
         <span>{current?.label}</span>
       </button>
       <Modal open={open} onClose={() => setOpen(false)} title="Language / भाषा">
-        <div className="grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
+        <div className="grid grid-cols-2 gap-2">
           {LANGUAGES.map((l) => (
             <button
               key={l.code}
