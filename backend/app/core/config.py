@@ -1,0 +1,156 @@
+"""Central configuration.
+
+Every tunable value lives here and is overridable via environment variables
+(or a .env file). Nothing operational is hard-coded elsewhere in the codebase.
+
+The app is designed to boot and run the *critical path* (intake + matching +
+sync) with ZERO external API keys. LLM and voice providers are strictly
+optional enhancements that degrade gracefully when unconfigured.
+"""
+from __future__ import annotations
+
+from functools import lru_cache
+from typing import List, Literal, Optional
+
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore", case_sensitive=False
+    )
+
+    # ----------------------------- App -----------------------------------
+    APP_NAME: str = "Setu — Kumbh Lost & Found Network"
+    APP_ENV: Literal["dev", "prod"] = "dev"
+    API_PREFIX: str = "/api/v1"
+    LOG_LEVEL: str = "INFO"
+
+    # CORS: comma-separated origins, or "*" for any (dev only).
+    CORS_ORIGINS: str = "*"
+
+    # ----------------------------- Database -------------------------------
+    # SQLite by default (zero-config, perfect for the demo + offline edge box).
+    # For production, set DATABASE_URL to a Postgres URL (Render/Supabase free tier).
+    DATABASE_URL: str = "sqlite:///./setu.db"
+
+    # ----------------------------- Security -------------------------------
+    # Used to sign JWTs and to hash PII (mobile numbers, secret answers).
+    SECRET_KEY: str = "change-me-in-production-please-32chars-min"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_TTL_MINUTES: int = 60 * 12
+
+    # Privacy: auto-purge personally identifiable data this many hours after a
+    # case is marked Reunited. The non-identifying record is retained for stats.
+    PII_PURGE_AFTER_HOURS: int = 72
+
+    # ----------------------------- Seed / data ---------------------------
+    DATA_DIR: str = "data"
+    SEED_ON_STARTUP: bool = True  # load reference geo + (optionally) sample cases
+    SEED_SAMPLE_CASES: bool = True  # load the 2,500 synthetic missing-person rows
+
+    # ----------------------------- LLM (optional) -------------------------
+    # provider: openai | anthropic | gemini | openrouter | deepseek | groq |
+    #           together | ollama | none
+    # "none" => deterministic fallbacks everywhere; system stays fully functional.
+    LLM_PROVIDER: str = "none"
+    LLM_MODEL: str = "gpt-4o-mini"
+    LLM_API_KEY: Optional[str] = None
+    # Override base URL for any OpenAI-compatible gateway (openrouter/deepseek/
+    # groq/together/ollama/local). Leave blank to use the provider default.
+    LLM_BASE_URL: Optional[str] = None
+    LLM_TEMPERATURE: float = 0.0
+    LLM_MAX_TOKENS: int = 1024
+    LLM_TIMEOUT_SECONDS: float = 30.0
+
+    # ----------------------------- Voice (optional) -----------------------
+    # provider: sarvam | deepgram | elevenlabs | openai | none
+    VOICE_PROVIDER: str = "none"
+    VOICE_API_KEY: Optional[str] = None
+    VOICE_MODEL: Optional[str] = None  # provider-specific, e.g. "saarika:v2", "nova-2"
+    VOICE_BASE_URL: Optional[str] = None
+    VOICE_DEFAULT_LANGUAGE: str = "hi"
+    # Storage backend for audio blobs: "local" (disk) or "s3" (S3-compatible).
+    VOICE_STORAGE: Literal["local", "s3"] = "local"
+    VOICE_STORAGE_DIR: str = "data/voice"
+    # S3-compatible (optional, e.g. Cloudflare R2 / Backblaze B2 free tier)
+    S3_ENDPOINT_URL: Optional[str] = None
+    S3_BUCKET: Optional[str] = None
+    S3_ACCESS_KEY: Optional[str] = None
+    S3_SECRET_KEY: Optional[str] = None
+    S3_PUBLIC_BASE_URL: Optional[str] = None
+
+    # ----------------------------- Maps -----------------------------------
+    # The web/mobile clients use OpenStreetMap (no key). A MapTiler/Stadia key
+    # is optional for prettier vector tiles; clients read this from /api/v1/config.
+    MAP_STYLE_URL: Optional[str] = None  # e.g. a MapTiler style URL with key
+    MAP_DEFAULT_LAT: float = 19.9975
+    MAP_DEFAULT_LNG: float = 73.7898
+    MAP_DEFAULT_ZOOM: float = 12.0
+
+    # ----------------------------- Matching weights -----------------------
+    # Fellegi–Sunter style log-likelihood weights. These are the *defaults*;
+    # they are meant to be re-estimated from real reunification outcomes.
+    # See app/matching/scorer.py for how they are applied.
+    W_GENDER_AGREE: float = 2.2
+    W_GENDER_DISAGREE: float = -4.0       # strong (near-veto) disagreement
+    W_AGEBAND_AGREE: float = 2.0
+    W_AGEBAND_ADJACENT: float = 0.6       # neighbouring band (e.g. 61-70 vs 71-80)
+    W_AGEBAND_DISAGREE: float = -1.5
+    W_LANGUAGE_AGREE: float = 1.8
+    W_LANGUAGE_DISAGREE: float = -0.6
+    W_STATE_AGREE: float = 1.4
+    W_DISTRICT_AGREE: float = 1.0
+    W_NAME_STRONG: float = 3.0            # phonetic/nickname strong match
+    W_NAME_WEAK: float = 1.2
+    W_NAME_DISAGREE: float = -0.8
+    W_MOBILE_EXACT: float = 8.0           # exact phone => near-certain identity
+    W_GEO_NEAR: float = 1.6               # last-seen within GEO_NEAR_KM
+    W_GEO_FAR: float = -0.8
+    W_DESC_COLOR: float = 0.5             # clothing colour (transient => low)
+    W_DESC_STABLE: float = 1.5            # stable descriptors (stick, blind, etc.)
+    W_DESC_SEMANTIC: float = 1.0          # LLM/text semantic similarity bonus
+
+    GEO_NEAR_KM: float = 1.5
+    GEO_FAR_KM: float = 6.0
+    TIME_WINDOW_HOURS: float = 48.0       # plausible report-time separation
+    # Temporal drift: clothing-colour weight decays toward zero as the time gap
+    # between the two reports grows (white at 8am looks grey by 4pm).
+    COLOR_DRIFT_HALFLIFE_HOURS: float = 8.0
+
+    # Logistic calibration mapping total evidence weight -> 0..1 probability:
+    #   p = 1 / (1 + exp(-(W - OFFSET) / SCALE))
+    # Defaults are sensible; ``scripts/eval_matcher.py`` reports the achieved
+    # separation and can recommend re-calibrated values from labelled pairs.
+    MATCH_PROB_OFFSET: float = 6.0
+    MATCH_PROB_SCALE: float = 2.5
+
+    # Decision thresholds on the normalised 0..1 match probability.
+    MATCH_AUTO_THRESHOLD: float = 0.82    # show as "strong match"
+    MATCH_REVIEW_THRESHOLD: float = 0.55  # show as "possible match"
+    MATCH_MAX_CANDIDATES: int = 25
+    # If more than this many candidates cluster above the review threshold with
+    # little score separation, the engine asks disambiguating questions instead
+    # of dumping a long list.
+    DISAMBIGUATION_TRIGGER_COUNT: int = 8
+    DISAMBIGUATION_MARGIN: float = 0.08
+
+    @field_validator("CORS_ORIGINS")
+    @classmethod
+    def _strip(cls, v: str) -> str:
+        return v.strip()
+
+    @property
+    def cors_origin_list(self) -> List[str]:
+        if self.CORS_ORIGINS.strip() == "*":
+            return ["*"]
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()

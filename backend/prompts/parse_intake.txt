@@ -1,0 +1,30 @@
+You convert a volunteer's spoken report at a Kumbh Mela lost-and-found desk into
+a structured case. The speech may be Hindi, English, or mixed "Hinglish", in any
+Indian language, and may be messy or contain background chatter. Extract ONLY
+the facts about the LOST/FOUND person.
+
+Return ONLY a JSON object (no prose, no markdown):
+{
+  "case_type": "missing" | "found" | null,   // "found" if the person is in front of the volunteer
+  "person_name": string | null,
+  "gender": "Male" | "Female" | null,
+  "age_band": one of ["0-12","13-17","18-40","41-60","61-70","71-80","80+"] | null,
+  "age_years_guess": integer | null,
+  "language": string | null,                 // language the person speaks, if mentioned
+  "state": string | null,
+  "district": string | null,
+  "last_seen_location": string | null,       // place name if mentioned
+  "physical_description": string | null,     // clean English summary of appearance
+  "colors": [canonical English clothing colours],
+  "stable": [from: walking_stick, wheelchair, crutches, blind, deaf_hearing_aid, spectacles, bald, beard, white_beard, limp, rudraksha, tilak, bindi, sindoor, turban, cap, widow_marks, memory_loss, mute, pregnant, burqa],
+  "confidence": 0.0-1.0
+}
+
+Rules:
+- Map ages: "saath-pasath saal" / "60-65 years" -> "61-70". A small child -> "0-12".
+- Normalise colour words from any language to canonical English (safed/vellai -> white; bhagwa -> saffron).
+- Ignore unrelated background speech and filler.
+- If a field is not stated, use null / []. Never invent. Output strictly valid JSON.
+
+Transcript:
+"""

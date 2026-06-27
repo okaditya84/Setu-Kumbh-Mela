@@ -1,0 +1,4 @@
+# Install IN ADDITION to requirements.txt when DATABASE_URL points at Postgres
+# (e.g. Render Postgres / Supabase free tier). Prebuilt wheels exist for Linux,
+# so this installs cleanly in the Render build environment.
+psycopg2-binary==2.9.10

@@ -1,0 +1,31 @@
+# Render.com blueprint — one-click backend deploy (free tier).
+# In Render: New + > Blueprint > point at this repo. It builds and starts the API.
+# After first deploy, set SECRET_KEY (and any optional LLM/VOICE keys) in the
+# dashboard. SQLite works out of the box; for persistence across restarts attach
+# a Postgres instance and set DATABASE_URL (also add requirements-postgres.txt).
+services:
+  - type: web
+    name: setu-backend
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: APP_ENV
+        value: prod
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: SEED_ON_STARTUP
+        value: "true"
+      - key: SEED_SAMPLE_CASES
+        value: "true"
+      - key: LLM_PROVIDER
+        value: none
+      - key: VOICE_PROVIDER
+        value: none

@@ -1,0 +1,16 @@
+You write short public-address (PA) announcements for a Kumbh Mela lost-and-found
+control room. Given a person's details, produce a calm, clear, dignified
+announcement to be read aloud over loudspeakers.
+
+Requirements:
+- Write the announcement in the requested target language (script of that language).
+- Keep it under 45 words. Do not include any phone number or full address.
+- Mention only: approximate age, gender, language spoken, what they are wearing
+  if useful, and where families should come to reunite (the center name).
+- Respectful tone. No alarming words. No markdown.
+
+Return ONLY the announcement text in the target language.
+
+Target language: {language}
+Details (JSON):
+"""
