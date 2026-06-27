@@ -189,6 +189,28 @@ class MatchLink(Base):
     )
 
 
+class Notification(Base):
+    """A center-targeted alert (e.g. a cross-center match needs both centers)."""
+
+    __tablename__ = "notifications"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    center: Mapped[str] = mapped_column(String(128), index=True)  # target center
+    kind: Mapped[str] = mapped_column(String(32), default="match")  # match | reunion
+    title: Mapped[str] = mapped_column(String(160))
+    body: Mapped[str] = mapped_column(Text, default="")
+    case_id: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    related_case_id: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    probability: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
+
+    __table_args__ = (
+        Index("ix_notif_center_read", "center", "read"),
+        Index("ix_notif_dedup", "center", "case_id", "related_case_id", "kind"),
+    )
+
+
 class AuditEvent(Base):
     """Append-only event log powering the admin observability feed."""
 

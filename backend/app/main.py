@@ -54,14 +54,18 @@ async def observe(request: Request, call_next):
 
 
 # ------------------------------ routers -------------------------------------
-from app.api.routers import admin, auth, cases, geo, intake, match, meta, sync, voice  # noqa: E402
+from app.api.routers import (  # noqa: E402
+    admin, auth, cases, geo, i18n, intake, match, meta, notifications, sync, voice,
+)
 
 P = settings.API_PREFIX
 app.include_router(meta.router, prefix=P)
+app.include_router(i18n.router, prefix=P)
 app.include_router(auth.router, prefix=P)
 app.include_router(cases.router, prefix=P)
 app.include_router(match.router, prefix=P)
 app.include_router(intake.router, prefix=P)
+app.include_router(notifications.router, prefix=P)
 app.include_router(sync.router, prefix=P)
 app.include_router(voice.router, prefix=P)
 app.include_router(geo.router, prefix=P)

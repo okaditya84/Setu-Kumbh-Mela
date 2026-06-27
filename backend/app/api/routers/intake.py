@@ -42,7 +42,9 @@ async def parse_voice(
     blob = await file.read()
     if not blob:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Empty audio")
-    transcript = stt.transcribe(blob, file.content_type or "audio/webm", language or None)
+    # Always AUTO-DETECT the spoken language (it is independent of the UI
+    # language). Passing None -> Sarvam language_code "unknown".
+    transcript = stt.transcribe(blob, file.content_type or "audio/webm", None)
     if not transcript:
         # STT unavailable/failed — tell the client to use on-device transcription.
         return {

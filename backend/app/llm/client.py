@@ -52,27 +52,29 @@ class LLMClient:
             return True  # local, no key needed
         return bool(self.api_key)
 
-    def chat(self, system: str, user: str, json_mode: bool = False) -> Optional[str]:
+    def chat(self, system: str, user: str, json_mode: bool = False,
+             max_tokens: Optional[int] = None) -> Optional[str]:
         if not self.available:
             return None
+        mt = max_tokens or self.max_tokens
         try:
             if self.provider == "anthropic":
-                return self._anthropic(system, user)
+                return self._anthropic(system, user, mt)
             if self.provider == "gemini":
-                return self._gemini(system, user, json_mode)
-            return self._openai_compatible(system, user, json_mode)
+                return self._gemini(system, user, json_mode, mt)
+            return self._openai_compatible(system, user, json_mode, mt)
         except Exception as e:  # never break the caller
             logger.warning(f"LLM call failed ({self.provider}): {e}")
             return None
 
     # ---------------------------------------------------------------- adapters
-    def _openai_compatible(self, system: str, user: str, json_mode: bool) -> Optional[str]:
+    def _openai_compatible(self, system: str, user: str, json_mode: bool, max_tokens: int) -> Optional[str]:
         base = self.base_url or _OPENAI_COMPATIBLE_BASES.get(self.provider, _OPENAI_COMPATIBLE_BASES["openai"])
         body: Dict = {
             "model": self.model,
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
             "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
+            "max_tokens": max_tokens,
         }
         if json_mode:
             body["response_format"] = {"type": "json_object"}
@@ -85,11 +87,11 @@ class LLMClient:
             r.raise_for_status()
             return r.json()["choices"][0]["message"]["content"]
 
-    def _anthropic(self, system: str, user: str) -> Optional[str]:
+    def _anthropic(self, system: str, user: str, max_tokens: int) -> Optional[str]:
         base = self.base_url or "https://api.anthropic.com/v1"
         body = {
             "model": self.model,
-            "max_tokens": self.max_tokens,
+            "max_tokens": max_tokens,
             "temperature": self.temperature,
             "system": system,
             "messages": [{"role": "user", "content": user}],
@@ -105,9 +107,9 @@ class LLMClient:
             parts = r.json().get("content", [])
             return "".join(p.get("text", "") for p in parts if p.get("type") == "text") or None
 
-    def _gemini(self, system: str, user: str, json_mode: bool) -> Optional[str]:
+    def _gemini(self, system: str, user: str, json_mode: bool, max_tokens: int) -> Optional[str]:
         base = self.base_url or "https://generativelanguage.googleapis.com/v1beta"
-        gen: Dict = {"temperature": self.temperature, "maxOutputTokens": self.max_tokens}
+        gen: Dict = {"temperature": self.temperature, "maxOutputTokens": max_tokens}
         if json_mode:
             gen["responseMimeType"] = "application/json"
         body = {

@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config.dart';
 
 /// Lightweight i18n. UI ships in English/Hindi/Marathi (missing keys fall back
 /// to English); every listed language is usable for voice + announcements.
@@ -196,12 +199,16 @@ const Map<String, Map<String, String>> _dicts = {
 
 class AppStrings extends ChangeNotifier {
   String _code = 'en';
+  // For languages not bundled (anything beyond en/hi/mr) we fetch the dictionary
+  // live from the backend (LLM-translated + cached) and hold it here.
+  Map<String, String>? _dynamic;
   String get code => _code;
   LangDef get lang => kLanguages.firstWhere((l) => l.code == _code, orElse: () => kLanguages[0]);
 
   Future<void> load() async {
     final p = await SharedPreferences.getInstance();
     _code = p.getString('lang') ?? 'en';
+    if (!_dicts.containsKey(_code)) await _loadDynamic(_code);
     notifyListeners();
   }
 
@@ -210,7 +217,34 @@ class AppStrings extends ChangeNotifier {
     final p = await SharedPreferences.getInstance();
     await p.setString('lang', c);
     notifyListeners();
+    if (!_dicts.containsKey(c)) await _loadDynamic(c);
   }
 
-  String t(String key) => _dicts[_code]?[key] ?? _dicts['en']![key] ?? key;
+  Future<void> _loadDynamic(String c) async {
+    final p = await SharedPreferences.getInstance();
+    final cached = p.getString('dict.$c');
+    if (cached != null) {
+      _dynamic = Map<String, String>.from(jsonDecode(cached));
+      notifyListeners();
+      return;
+    }
+    try {
+      final r = await http.get(Uri.parse('${Config.api}/i18n/$c')).timeout(const Duration(seconds: 90));
+      if (r.statusCode == 200) {
+        final d = (jsonDecode(r.body)['dict'] as Map).cast<String, String>();
+        _dynamic = d;
+        await p.setString('dict.$c', jsonEncode(d));
+        notifyListeners();
+      }
+    } catch (_) {
+      // stay on English fallback
+    }
+  }
+
+  String t(String key) {
+    if (_dicts.containsKey(_code)) {
+      return _dicts[_code]?[key] ?? _dicts['en']![key] ?? key;
+    }
+    return _dynamic?[key] ?? _dicts['en']![key] ?? key;
+  }
 }

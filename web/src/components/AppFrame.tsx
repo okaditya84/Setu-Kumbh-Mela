@@ -4,8 +4,10 @@ import { usePathname } from "next/navigation";
 import { Home, FilePlus2, Map, ListChecks, Activity, WifiOff, RefreshCw, LogOut } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useOnline, usePending, useAuthGuard } from "@/lib/hooks";
-import { setAuth, getAuth } from "@/lib/api";
+import { setAuth } from "@/lib/api";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { NotificationsBell } from "./NotificationsBell";
+import { Spinner } from "./ui";
 
 function NavItem({ href, label, icon: Icon, active }: any) {
   return (
@@ -21,13 +23,37 @@ function NavItem({ href, label, icon: Icon, active }: any) {
   );
 }
 
+// Horizontal nav link used in the top bar on large screens.
+function TopNavLink({ href, label, icon: Icon, active }: any) {
+  return (
+    <Link
+      href={href}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+        active ? "bg-saffron-50 text-saffron-700" : "text-slate-500 hover:bg-slate-100"
+      }`}
+    >
+      <Icon className={`h-4 w-4 ${active ? "text-saffron-600" : "text-slate-400"}`} />
+      {label}
+    </Link>
+  );
+}
+
 export function AppFrame({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
   const { t } = useI18n();
-  const auth = useAuthGuard();
+  const { auth, resolved } = useAuthGuard();
   const online = useOnline();
   const pending = usePending();
   const pathname = usePathname();
 
+  // Until the client has mounted and read localStorage, render a stable
+  // placeholder so the first client render matches the server render.
+  if (!resolved) {
+    return (
+      <div className="min-h-full grid place-items-center py-20">
+        <Spinner className="h-6 w-6 text-saffron-600" />
+      </div>
+    );
+  }
   if (!auth) return null; // guard redirects to /login
   const isAdmin = auth.role === "admin";
 
@@ -40,15 +66,22 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
   ];
 
   return (
-    <div className="min-h-full flex flex-col pb-20">
+    <div className="min-h-full flex flex-col pb-20 lg:pb-6">
       {/* Top bar */}
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
-        <div className="mx-auto max-w-3xl flex items-center justify-between px-4 py-2.5">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="mx-auto w-full max-w-6xl flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-2.5">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-saffron-600 text-white font-black">से</span>
             <span className="font-extrabold tracking-tight">{t("app.name")}</span>
           </Link>
-          <div className="flex items-center gap-1">
+          {/* Inline nav (large screens only — small screens use the bottom bar) */}
+          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+            {nav.map((n) => (
+              <TopNavLink key={n.href} {...n} active={pathname === n.href.split("?")[0]} />
+            ))}
+          </nav>
+          <div className="flex items-center gap-1 shrink-0">
+            <NotificationsBell />
             <LanguageSwitcher />
             <button
               onClick={() => {
@@ -78,10 +111,10 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
         )}
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-4">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 lg:px-8 py-4 lg:py-6">{children}</main>
 
-      {/* Bottom nav (thumb reach) */}
-      <nav className="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200">
+      {/* Bottom nav (thumb reach) — small/medium screens only */}
+      <nav className="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 lg:hidden">
         <div className="mx-auto max-w-3xl flex items-center justify-around py-1">
           {nav.map((n) => (
             <NavItem key={n.href} {...n} active={pathname === n.href.split("?")[0]} />

@@ -69,9 +69,33 @@ class ApiClient {
     return IntakeDraft.fromJson(_decode(r)['draft']);
   }
 
+  /// Uploads recorded intake audio for server-side AUTO-DETECT transcription
+  /// (language sent empty so the spoken language is detected independently of
+  /// the UI language). Returns {transcript, draft, stt_available}.
+  Future<Map<String, dynamic>> intakeVoice(Uint8List bytes, {String caseType = 'found'}) async {
+    final req = http.MultipartRequest('POST', _u('/intake/voice'))
+      ..headers['Authorization'] = 'Bearer $token'
+      ..fields['case_type'] = caseType
+      ..fields['language'] = ''
+      ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: 'intake.m4a'));
+    final res = await http.Response.fromStream(await req.send());
+    return (_decode(res) as Map).cast<String, dynamic>();
+  }
+
   Future<Map<String, dynamic>> announcement(String id, String language) async =>
       (_decode(await http.get(_u('/cases/$id/announcement', {'language': language}), headers: _headers)) as Map)
           .cast<String, dynamic>();
+
+  /// Server-side text-to-speech in the target [language]. Returns wav bytes,
+  /// or null when the backend can't synthesise that language (HTTP 204).
+  Future<Uint8List?> tts(String text, String language) async {
+    final res = await http.post(_u('/tts'), headers: _headers, body: jsonEncode({'text': text, 'language': language}));
+    if (res.statusCode == 204) return null;
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw ApiException(res.statusCode, 'TTS failed');
+    }
+    return res.bodyBytes.isEmpty ? null : res.bodyBytes;
+  }
 
   Future<Map<String, dynamic>> verify(String id, String answer) async =>
       (_decode(await http.post(_u('/cases/$id/verify'), headers: _headers, body: jsonEncode({'answer': answer}))) as Map)
@@ -90,6 +114,16 @@ class ApiClient {
   Future<List<dynamic>> listVoice(String caseId) async => _decode(await http.get(_u('/cases/$caseId/voice'), headers: _headers)) as List;
   String audioUrl(String sampleId) => '${Config.api}/voice/$sampleId/audio';
 
+  /// Fetches the raw audio bytes for a voice sample WITH the bearer token,
+  /// so playback works for this protected endpoint (a plain URL source 401s).
+  Future<Uint8List> audioBytes(String sampleId) async {
+    final res = await http.get(_u('/voice/$sampleId/audio'), headers: _headers);
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw ApiException(res.statusCode, 'Could not load audio');
+    }
+    return res.bodyBytes;
+  }
+
   Future<List<String>> geoLocations() async =>
       ((_decode(await http.get(_u('/geo/locations'), headers: _headers)) as Map)['locations'] as List).cast<String>();
 
@@ -101,6 +135,24 @@ class ApiClient {
       (_decode(await http.post(_u('/sync/push'), headers: _headers, body: jsonEncode({'cases': cases}))) as Map).cast<String, dynamic>();
 
   Future<Map<String, dynamic>> adminMetrics() async => (_decode(await http.get(_u('/admin/metrics'), headers: _headers)) as Map).cast<String, dynamic>();
+
+  // ---- Center notifications ----
+
+  Future<List<NotificationItem>> listNotifications() async {
+    final data = (_decode(await http.get(_u('/notifications'), headers: _headers)) as Map)['notifications'] as List? ?? [];
+    return data.map((e) => NotificationItem.fromJson((e as Map).cast<String, dynamic>())).toList();
+  }
+
+  Future<int> unreadCount() async =>
+      ((_decode(await http.get(_u('/notifications/unread-count'), headers: _headers)) as Map)['count'] as num?)?.toInt() ?? 0;
+
+  Future<void> markRead(String id) async {
+    _decode(await http.post(_u('/notifications/$id/read'), headers: _headers));
+  }
+
+  Future<void> markAllRead() async {
+    _decode(await http.post(_u('/notifications/read-all'), headers: _headers));
+  }
 }
 
 class ApiException implements Exception {

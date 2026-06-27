@@ -49,18 +49,21 @@ export function Modal({
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4 overflow-y-auto"
+      onClick={onClose}
+    >
       <div
-        className="card w-full sm:max-w-md p-5 rounded-b-none sm:rounded-2xl animate-[slideup_0.2s_ease]"
+        className="card w-full sm:max-w-md rounded-b-none sm:rounded-2xl animate-[slideup_0.2s_ease] flex flex-col max-h-[88vh] my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between p-4 border-b border-slate-100 shrink-0">
           <h3 className="font-bold text-lg">{title}</h3>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100" aria-label="close">
             <X className="h-5 w-5" />
           </button>
         </div>
-        {children}
+        <div className="p-4 overflow-y-auto">{children}</div>
       </div>
       <style>{`@keyframes slideup{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
     </div>

@@ -31,6 +31,7 @@ def client_config():
         "features": {
             "llm_enabled": get_llm().available,
             "voice_enabled": (settings.VOICE_PROVIDER or "none").lower() != "none",
+            "tts_enabled": __import__("app.voice.tts", fromlist=["available"]).available(),
             "face_matching_enabled": (settings.FACE_PROVIDER or "none").lower() == "http",
         },
     }

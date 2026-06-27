@@ -23,14 +23,21 @@ from app.geo.distance import geo_cell
 from app.geo.gazetteer import resolve_location
 from app.matching.normalize import build_normalized
 
-# Demo accounts. Override via env / change in production. Documented in README.
+# Demo accounts with realistic volunteer names, spread across centers.
+# Passwords are demo-only — change in production.
 DEFAULT_OPERATORS = [
     {"username": "admin", "password": "admin123", "role": Role.admin.value,
-     "center": "Central Control Room", "full_name": "Control Room Admin"},
+     "center": "Central Control Room", "full_name": "Vikram Deshpande (Control Room)"},
     {"username": "volunteer", "password": "volunteer123", "role": Role.volunteer.value,
-     "center": "Ramkund Kho-Ya-Paya Kendra", "full_name": "Ramkund Volunteer"},
+     "center": "Ramkund Kho-Ya-Paya Kendra", "full_name": "Ramesh Pawar"},
     {"username": "trimbak", "password": "volunteer123", "role": Role.volunteer.value,
-     "center": "Trimbakeshwar Kho-Ya-Paya Kendra", "full_name": "Trimbakeshwar Volunteer"},
+     "center": "Trimbakeshwar Kho-Ya-Paya Kendra", "full_name": "Sunita Jadhav"},
+    {"username": "panchavati", "password": "volunteer123", "role": Role.volunteer.value,
+     "center": "Panchavati Center", "full_name": "Anil Kulkarni"},
+    {"username": "nashikroad", "password": "volunteer123", "role": Role.volunteer.value,
+     "center": "Nashik Road Center", "full_name": "Meena Shinde"},
+    {"username": "adgaon", "password": "volunteer123", "role": Role.volunteer.value,
+     "center": "Adgaon Kho-Ya-Paya", "full_name": "Govind Patil"},
 ]
 
 
@@ -126,6 +133,44 @@ def seed_sample_cases() -> None:
                 if n % 500 == 0:
                     db.flush()
         db.commit()
-        logger.info(f"Seeded {n} synthetic missing-person cases")
+        logger.info(f"Seeded {n} official missing-person cases")
+
+        # Generate a realistic, diverse population on top: both MISSING and FOUND
+        # reports + planted true cross-center pairs, so reunions actually happen.
+        target = settings.SEED_TARGET_TOTAL
+        extra = max(0, target - n)
+        if extra > 0:
+            import random as _random
+            from app.services.generate_cases import generate
+            rng = _random.Random(2027)
+            gen = generate(extra, settings.SEED_FOUND_RATIO, settings.SEED_PLANTED_PAIRS)
+            g = 0
+            for row in gen:
+                name = row["person_name"]
+                age_band = row["age_band"]
+                desc = row["physical_description"]
+                normalized = build_normalized(person_name=name, age_band=age_band, physical_description=desc)
+                loc = row["last_seen_location"]
+                coords = resolve_location(loc) or (None, None)
+                mob = normalize_mobile(row["reporter_mobile"])
+                # Most generated cases stay open (matchable); some resolved for stats.
+                status = CaseStatus.reunited.value if rng.random() < 0.20 else CaseStatus.pending.value
+                db.add(Case(
+                    case_id=f"KMP-2027-{n + g + 1:05d}",
+                    case_type=row["case_type"], status=status,
+                    person_name=name, gender=row["gender"], age_band=age_band,
+                    state=row["state"], district=row["district"], language=row["language"],
+                    last_seen_location=loc, last_seen_lat=coords[0], last_seen_lng=coords[1],
+                    geo_cell=geo_cell(coords[0], coords[1]),
+                    physical_description=desc, reporting_center=row["reporting_center"],
+                    reporter_mobile_hash=hash_pii(mob), reporter_mobile_masked=mask_mobile(mob),
+                    normalized=normalized, reported_at=row["reported_at"], source="seed-gen",
+                ))
+                g += 1
+                if g % 500 == 0:
+                    db.flush()
+            db.commit()
+            logger.info(f"Generated {g} additional realistic cases "
+                        f"({settings.SEED_PLANTED_PAIRS} planted pairs, found_ratio={settings.SEED_FOUND_RATIO})")
     finally:
         db.close()

@@ -28,6 +28,18 @@ from app.matching import blocking
 from app.matching.scorer import ScoreResult, score_pair
 
 
+def _has_signal(case: Case) -> bool:
+    """True if the query carries any identifying info worth matching on."""
+    n = case.normalized or {}
+    return any([
+        case.gender and case.gender.lower() != "unknown",
+        case.age_band, case.language, case.state,
+        case.last_seen_location or case.last_seen_lat is not None,
+        case.reporter_mobile_hash, case.face_embedding,
+        n.get("name_keys"), n.get("colors"), n.get("stable"),
+    ])
+
+
 def _tier(prob: float) -> str:
     if prob >= settings.MATCH_AUTO_THRESHOLD:
         return "strong"
@@ -107,6 +119,16 @@ def _disambiguation_questions(query: Case, cluster: List[Case]) -> List[Dict[str
 
 def find_matches(db: Session, query: Case, limit: Optional[int] = None) -> Dict[str, object]:
     limit = limit or settings.MATCH_MAX_CANDIDATES
+
+    # No identifying info → nothing to match on. Return empty rather than dumping
+    # the whole register at the baseline probability.
+    if not _has_signal(query):
+        metrics.incr("match.queries")
+        return {
+            "query_case_id": query.id, "candidates": [], "needs_disambiguation": False,
+            "disambiguation_questions": [], "total_considered": 0, "no_query_signal": True,
+        }
+
     with metrics_timer("match.find_matches"):
         # 1) exact-mobile fast path
         forced: Dict[str, ScoreResult] = {}
@@ -130,8 +152,10 @@ def find_matches(db: Session, query: Case, limit: Optional[int] = None) -> Dict[
     scored.sort(key=lambda t: t[1].probability, reverse=True)
     ranked = scored[: max(limit, settings.DISAMBIGUATION_TRIGGER_COUNT * 2)]
 
+    # Only surface candidates above the display floor — hide baseline noise.
+    shown = [(c, sr) for c, sr in ranked if sr.probability >= settings.MATCH_DISPLAY_FLOOR]
     candidates = []
-    for cand, sr in ranked[:limit]:
+    for cand, sr in shown[:limit]:
         candidates.append({
             "case": cand,
             "score": sr.weight,
@@ -162,6 +186,7 @@ def find_matches(db: Session, query: Case, limit: Optional[int] = None) -> Dict[
         "needs_disambiguation": needs_disambiguation,
         "disambiguation_questions": questions,
         "total_considered": len(scored),
+        "no_query_signal": False,
     }
 
 

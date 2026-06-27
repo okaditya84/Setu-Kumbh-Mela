@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Sparkles, ChevronDown, Send, CheckCircle2, WifiOff } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
@@ -12,7 +12,7 @@ import { LANGUAGES } from "@/i18n/languages";
 import { api } from "@/lib/api";
 import { AGE_BANDS, GENDERS } from "@/lib/config";
 import { enqueueCase, uuid } from "@/lib/db";
-import type { CaseDraft, CaseType, MatchResponse } from "@/lib/types";
+import type { CaseDraft, CaseType, IntakeDraft, MatchResponse } from "@/lib/types";
 
 function IntakeInner() {
   const { t, announceName } = useI18n();
@@ -32,6 +32,8 @@ function IntakeInner() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [reunited, setReunited] = useState(false);
   const [locations, setLocations] = useState<string[]>([]);
+  // Incremented to tell VoiceCapture to stop listening (e.g. on submit).
+  const [stopSignal, setStopSignal] = useState(0);
 
   useEffect(() => {
     setDraft((d) => ({ ...d, case_type: caseType }));
@@ -42,24 +44,47 @@ function IntakeInner() {
 
   const set = (k: keyof CaseDraft, v: any) => setDraft((d) => ({ ...d, [k]: v }));
 
+  // Map a parsed IntakeDraft onto the case draft (shared by /intake/parse and server STT).
+  function applyDraft(parsed: IntakeDraft, fallbackDescription?: string) {
+    setDraft((d) => ({
+      ...d,
+      person_name: parsed.person_name ?? d.person_name,
+      gender: parsed.gender ?? d.gender,
+      age_band: parsed.age_band ?? d.age_band,
+      language: parsed.language ?? d.language,
+      state: parsed.state ?? d.state,
+      district: parsed.district ?? d.district,
+      last_seen_location: parsed.last_seen_location ?? d.last_seen_location,
+      physical_description: parsed.physical_description ?? fallbackDescription ?? d.physical_description,
+    }));
+  }
+
+  // The server STT path returns an already-parsed draft, so when it fires we skip
+  // the redundant client-side /intake/parse call in onVoice (which would clobber it).
+  const serverDraftApplied = useRef(false);
+
+  // Server STT returned a parsed draft (primary path) → prefill the form.
+  function onServerDraft(parsed: IntakeDraft) {
+    serverDraftApplied.current = true;
+    setShowManual(true);
+    applyDraft(parsed);
+  }
+
   async function onVoice(transcript: string, blob: Blob | null) {
     setAudioBlob(blob);
     setShowManual(true);
+    // If the server already parsed a draft this capture, just backfill the
+    // description from the transcript if it's still empty, and skip re-parsing.
+    if (serverDraftApplied.current) {
+      serverDraftApplied.current = false;
+      if (transcript) setDraft((d) => (d.physical_description ? d : { ...d, physical_description: transcript }));
+      return;
+    }
     if (!transcript) return;
     setParsing(true);
     try {
       const { draft: parsed } = await api.parseText(transcript, caseType);
-      setDraft((d) => ({
-        ...d,
-        person_name: parsed.person_name ?? d.person_name,
-        gender: parsed.gender ?? d.gender,
-        age_band: parsed.age_band ?? d.age_band,
-        language: parsed.language ?? d.language,
-        state: parsed.state ?? d.state,
-        district: parsed.district ?? d.district,
-        last_seen_location: parsed.last_seen_location ?? d.last_seen_location,
-        physical_description: parsed.physical_description ?? transcript,
-      }));
+      applyDraft(parsed, transcript);
     } catch {
       set("physical_description", transcript);
     } finally {
@@ -68,6 +93,8 @@ function IntakeInner() {
   }
 
   async function submit() {
+    // Stop any active voice recognition before submitting.
+    setStopSignal((s) => s + 1);
     setSubmitting(true);
     setSavedOffline(false);
     const payload: CaseDraft = { ...draft, client_uuid: uuid(), photo_url: photo };
@@ -119,11 +146,32 @@ function IntakeInner() {
 
   const title = caseType === "missing" ? t("intake.titleMissing") : t("intake.titleFound");
 
+  // Don't allow submitting a blank report — require at least one meaningful signal
+  // (a typed/parsed field, a photo, or captured voice audio).
+  const meaningfulFields: (keyof CaseDraft)[] = [
+    "person_name",
+    "gender",
+    "age_band",
+    "language",
+    "state",
+    "district",
+    "last_seen_location",
+    "physical_description",
+    "reporter_mobile",
+  ];
+  const hasSignal =
+    !!photo ||
+    !!audioBlob ||
+    meaningfulFields.some((k) => {
+      const v = draft[k];
+      return typeof v === "string" ? v.trim().length > 0 : v != null;
+    });
+
   // ---- result states ----
   if (reunited) {
     return (
       <AppFrame>
-        <div className="card p-8 text-center mt-10">
+        <div className="card p-8 text-center mt-10 max-w-md mx-auto">
           <CheckCircle2 className="mx-auto h-16 w-16 text-green-500 mb-3" />
           <p className="text-xl font-bold">{t("match.reunitedOk")}</p>
           <button className="btn-primary mt-6" onClick={() => router.push("/")}>
@@ -144,17 +192,26 @@ function IntakeInner() {
       </div>
 
       {!matches && !savedOffline && (
-        <>
-          {/* Big voice button */}
-          <div className="card p-6 mb-4">
-            <VoiceCapture onResult={onVoice} />
-            {parsing && (
-              <p className="mt-3 text-center text-sm text-saffron-700 inline-flex items-center gap-1 w-full justify-center">
-                <Sparkles className="h-4 w-4 animate-pulse" /> {t("intake.draftReady")}
-              </p>
-            )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-6 lg:items-start">
+          {/* Left column: big voice button */}
+          <div className="lg:sticky lg:top-20">
+            <div className="card p-6 mb-4 lg:mb-0">
+              <VoiceCapture
+                onResult={onVoice}
+                onServerDraft={onServerDraft}
+                caseType={caseType}
+                stopSignal={stopSignal}
+              />
+              {parsing && (
+                <p className="mt-3 text-center text-sm text-saffron-700 inline-flex items-center gap-1 w-full justify-center">
+                  <Sparkles className="h-4 w-4 animate-pulse" /> {t("intake.draftReady")}
+                </p>
+              )}
+            </div>
           </div>
 
+          {/* Right column: manual / prefilled form + submit */}
+          <div>
           {/* Manual / prefilled form */}
           <button
             onClick={() => setShowManual((s) => !s)}
@@ -251,16 +308,26 @@ function IntakeInner() {
             </div>
           )}
 
-          <button onClick={submit} disabled={submitting} className="btn-primary w-full mt-4 py-4 text-lg sticky bottom-24">
+          <button
+            onClick={submit}
+            disabled={submitting || !hasSignal}
+            className="btn-primary w-full mt-4 py-4 text-lg sticky bottom-24 lg:static lg:bottom-auto"
+          >
             <Send className="h-5 w-5" /> {t("intake.submit")}
           </button>
-        </>
+          {!hasSignal && (
+            <p className="mt-2 text-center text-xs text-slate-400">
+              Add details by voice, a photo, or fill the form to search.
+            </p>
+          )}
+          </div>
+        </div>
       )}
 
       {submitting && <div className="mt-4"><Scanning label={t("intake.scanning")} /></div>}
 
       {savedOffline && (
-        <div className="card p-8 text-center mt-6">
+        <div className="card p-8 text-center mt-6 max-w-md mx-auto">
           <WifiOff className="mx-auto h-14 w-14 text-amber-500 mb-3" />
           <p className="font-bold text-lg">{t("sync.offlineNote")}</p>
           <button className="btn-primary mt-6" onClick={() => router.push("/")}>{t("nav.home")}</button>
@@ -293,11 +360,18 @@ function IntakeInner() {
           )}
 
           {matches.candidates.length === 0 ? (
-            <div className="card p-6 text-center text-slate-500">{t("match.noMatches")}</div>
+            <div className="card p-8 text-center">
+              <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-green-100 text-green-600">
+                <CheckCircle2 className="h-7 w-7" />
+              </div>
+              <p className="font-semibold text-slate-700">{t("match.noMatches")}</p>
+            </div>
           ) : (
-            matches.candidates.map((c) => (
-              <MatchCard key={c.case.id} cand={c} onConfirm={() => confirm(c.case.id)} confirming={confirmingId === c.case.id} />
-            ))
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+              {matches.candidates.map((c) => (
+                <MatchCard key={c.case.id} cand={c} onConfirm={() => confirm(c.case.id)} confirming={confirmingId === c.case.id} />
+              ))}
+            </div>
           )}
 
           <button className="btn-ghost w-full" onClick={() => router.push(createdId ? `/case/${createdId}` : "/")}>

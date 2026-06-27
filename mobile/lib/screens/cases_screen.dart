@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../i18n/strings.dart';
 import '../models/models.dart';
 import '../services/auth.dart';
+import '../widgets/case_badges.dart';
+import '../widgets/responsive.dart';
 import 'case_detail_screen.dart';
 
 class CasesScreen extends StatefulWidget {
@@ -37,7 +39,8 @@ class _CasesScreenState extends State<CasesScreen> {
     final t = context.watch<AppStrings>().t;
     return Scaffold(
       appBar: AppBar(title: Text(t('home.cases'))),
-      body: Column(
+      body: ResponsiveBody(
+        child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
@@ -63,15 +66,26 @@ class _CasesScreenState extends State<CasesScreen> {
                     itemBuilder: (_, i) {
                       final c = _cases[i];
                       return ListTile(
-                        title: Text(c.personName ?? t('common.unknown')),
-                        subtitle: Text('${c.caseId} · ${c.gender ?? ''} · ${c.ageBand ?? ''} · ${c.lastSeenLocation ?? ''}'),
-                        trailing: Chip(label: Text(c.caseType == 'missing' ? t('common.missing') : t('common.found'), style: const TextStyle(fontSize: 11))),
+                        isThreeLine: true,
+                        title: Row(children: [
+                          Expanded(child: Text(c.personName ?? t('common.unknown'))),
+                          TypeTag(caseType: c.caseType),
+                        ]),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${c.caseId} · ${c.gender ?? ''} · ${c.ageBand ?? ''} · ${c.lastSeenLocation ?? ''}'),
+                            const SizedBox(height: 6),
+                            Align(alignment: Alignment.centerLeft, child: StatusChip(status: c.status, compact: true)),
+                          ],
+                        ),
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CaseDetailScreen(caseId: c.id))),
                       );
                     },
                   ),
           ),
         ],
+        ),
       ),
     );
   }

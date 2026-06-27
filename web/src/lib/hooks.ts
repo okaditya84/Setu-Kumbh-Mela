@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth } from "./api";
 import { pendingCount } from "./db";
+import type { AuthInfo } from "./types";
 
 export function useOnline(): boolean {
   const [online, setOnline] = useState(true);
@@ -38,14 +39,20 @@ export function usePending(refreshMs = 4000): number {
   return n;
 }
 
-/** Redirect to /login if no token. Returns auth (or null while resolving). */
+/**
+ * Redirect to /login if no token.
+ * Reads localStorage only after mount so the first client render matches the
+ * server render (no hydration mismatch). `resolved` is false until mounted.
+ */
 export function useAuthGuard() {
   const router = useRouter();
-  const [auth, setAuthState] = useState(getAuth());
+  const [auth, setAuthState] = useState<AuthInfo | null>(null);
+  const [resolved, setResolved] = useState(false);
   useEffect(() => {
     const a = getAuth();
     setAuthState(a);
+    setResolved(true);
     if (!a) router.replace("/login");
   }, [router]);
-  return auth;
+  return { auth, resolved } as const;
 }

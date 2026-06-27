@@ -76,10 +76,10 @@ class _MapScreenState extends State<MapScreen> {
                         )),
                     ..._cases.map((c) => Marker(
                           point: LatLng((c['lat'] as num).toDouble(), (c['lng'] as num).toDouble()),
-                          width: 26, height: 26,
+                          width: 40, height: 40,
                           child: GestureDetector(
                             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CaseDetailScreen(caseId: c['id']))),
-                            child: Icon(Icons.location_on, size: 26, color: c['case_type'] == 'missing' ? kSaffron : kTeal),
+                            child: PulsingMarker(color: c['case_type'] == 'missing' ? kSaffron : kTeal),
                           ),
                         )),
                   ],
@@ -87,6 +87,57 @@ class _MapScreenState extends State<MapScreen> {
                 const RichAttributionWidget(attributions: [TextSourceAttribution('© OpenStreetMap')]),
               ],
             ),
+    );
+  }
+}
+
+/// A case marker that pulses: an expanding/fading halo behind a solid dot pin,
+/// to draw attention to open cases on the map.
+class PulsingMarker extends StatefulWidget {
+  final Color color;
+  const PulsingMarker({super.key, required this.color});
+  @override
+  State<PulsingMarker> createState() => _PulsingMarkerState();
+}
+
+class _PulsingMarkerState extends State<PulsingMarker> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400))..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        final v = _ctrl.value; // 0 -> 1
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            // Expanding, fading halo.
+            Container(
+              width: 16 + 24 * v,
+              height: 16 + 24 * v,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: widget.color.withOpacity((1 - v) * 0.35),
+              ),
+            ),
+            child!,
+          ],
+        );
+      },
+      child: Icon(Icons.location_on, size: 26, color: widget.color),
     );
   }
 }

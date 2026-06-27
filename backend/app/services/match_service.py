@@ -16,6 +16,7 @@ from app.llm.services import explain_match
 from app.matching.engine import find_matches
 from app.schemas.models import MatchCandidate, MatchResponse
 from app.services.case_service import audit, set_status
+from app.services import notify_service
 
 
 def _now() -> datetime:
@@ -67,6 +68,8 @@ def build_match_response(db: Session, query: Case, persist: bool = True,
                     status=MatchStatus.suggested.value,
                 ))
         db.commit()
+        # Raise cross-center alerts for strong candidates.
+        notify_service.notify_match(db, query, candidates)
 
     out_candidates = [
         MatchCandidate(
@@ -85,7 +88,16 @@ def build_match_response(db: Session, query: Case, persist: bool = True,
         needs_disambiguation=result["needs_disambiguation"],
         disambiguation_questions=result["disambiguation_questions"],
         total_considered=result["total_considered"],
+        no_query_signal=result.get("no_query_signal", False),
     )
+
+
+def preview(db: Session, payload) -> MatchResponse:
+    """Score a draft against the registry WITHOUT persisting it — for the
+    confirm-before-register flow. No notifications are raised here."""
+    from app.services.case_service import build_transient_case
+    transient = build_transient_case(db, payload)
+    return build_match_response(db, transient, persist=False, enrich_top=True)
 
 
 def decide(db: Session, missing_case_id: str, found_case_id: str, decision: str, actor: str) -> MatchLink:
@@ -107,6 +119,7 @@ def decide(db: Session, missing_case_id: str, found_case_id: str, decision: str,
             c = db.get(Case, cid)
             if c and c.status != CaseStatus.reunited.value:
                 set_status(db, c, CaseStatus.reunited.value, actor=actor)
+        notify_service.notify_reunion(db, db.get(Case, missing_case_id), db.get(Case, found_case_id))
     audit(db, "match.decide", actor=actor, entity_type="match",
           entity_id=f"{missing_case_id}:{found_case_id}", meta={"decision": decision})
     db.commit()
