@@ -1,0 +1,48 @@
+name: setu_mobile
+description: "Setu — Kumbh Lost & Found (field app for volunteers)."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Networking + state
+  http: ^1.2.2
+  provider: ^6.1.2
+  uuid: ^4.5.1
+  intl: ^0.19.0
+
+  # Local persistence (offline-first queue + cache)
+  sqflite: ^2.4.1
+  path: ^1.9.0
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.3
+  connectivity_plus: ^6.1.0
+
+  # Voice-first intake
+  speech_to_text: ^7.0.0     # on-device speech -> text, any Indian locale
+  record: ^5.2.0             # capture the audio sample
+  audioplayers: ^6.1.0       # play stored voice samples back to families
+  flutter_tts: ^4.2.0        # speak PA announcements aloud
+
+  # Camera + permissions
+  image_picker: ^1.1.2
+  permission_handler: ^11.3.1
+
+  # Map (OpenStreetMap, no API key)
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

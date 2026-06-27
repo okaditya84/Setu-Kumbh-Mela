@@ -1,0 +1,264 @@
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:uuid/uuid.dart';
+import 'dart:convert';
+
+import '../config.dart';
+import '../i18n/strings.dart';
+import '../models/models.dart';
+import '../services/auth.dart';
+import '../services/local_db.dart';
+import '../services/sync.dart';
+import '../theme.dart';
+import '../widgets/match_card.dart';
+
+class IntakeScreen extends StatefulWidget {
+  final String caseType;
+  const IntakeScreen({super.key, required this.caseType});
+  @override
+  State<IntakeScreen> createState() => _IntakeScreenState();
+}
+
+class _IntakeScreenState extends State<IntakeScreen> {
+  final _stt = SpeechToText();
+  final _draft = CaseDraft();
+  final _picker = ImagePicker();
+  bool _sttReady = false, _listening = false, _submitting = false, _parsing = false;
+  String _heard = '';
+  String? _photoB64;
+  MatchResponse? _matches;
+  bool _savedOffline = false, _reunited = false;
+
+  // text controllers
+  final _name = TextEditingController();
+  final _desc = TextEditingController();
+  final _mobile = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _draft.caseType = widget.caseType;
+    _stt.initialize(onStatus: (s) {
+      if (s == 'done' || s == 'notListening') setState(() => _listening = false);
+    }).then((ok) => setState(() => _sttReady = ok));
+  }
+
+  Future<void> _toggleListen() async {
+    final locale = context.read<AppStrings>().lang.speechLocale;
+    if (_listening) {
+      await _stt.stop();
+      setState(() => _listening = false);
+      await _parse();
+      return;
+    }
+    if (!_sttReady) return;
+    setState(() {
+      _listening = true;
+      _heard = '';
+    });
+    await _stt.listen(
+      localeId: locale,
+      listenOptions: SpeechListenOptions(partialResults: true),
+      onResult: (r) => setState(() => _heard = r.recognizedWords),
+    );
+  }
+
+  Future<void> _parse() async {
+    if (_heard.trim().isEmpty) return;
+    setState(() => _parsing = true);
+    try {
+      final api = context.read<AuthProvider>().api;
+      final d = await api.parseText(_heard, widget.caseType);
+      setState(() {
+        _name.text = d.personName ?? _name.text;
+        _draft.gender = d.gender ?? _draft.gender;
+        _draft.ageBand = d.ageBand ?? _draft.ageBand;
+        _draft.language = d.language ?? _draft.language;
+        _draft.state = d.state ?? _draft.state;
+        _draft.lastSeenLocation = d.lastSeenLocation ?? _draft.lastSeenLocation;
+        _desc.text = d.physicalDescription ?? _heard;
+      });
+    } catch (_) {
+      _desc.text = _heard;
+    } finally {
+      setState(() => _parsing = false);
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    final img = await _picker.pickImage(source: ImageSource.camera, maxWidth: 640, imageQuality: 70);
+    if (img == null) return;
+    final bytes = await img.readAsBytes();
+    setState(() => _photoB64 = 'data:image/jpeg;base64,${base64Encode(bytes)}');
+  }
+
+  Future<void> _submit() async {
+    setState(() => _submitting = true);
+    _draft
+      ..clientUuid = const Uuid().v4()
+      ..personName = _name.text.trim().isEmpty ? null : _name.text.trim()
+      ..physicalDescription = _desc.text.trim().isEmpty ? null : _desc.text.trim()
+      ..reporterMobile = _mobile.text.trim().isEmpty ? null : _mobile.text.trim()
+      ..photoUrl = _photoB64;
+    final sync = context.read<SyncService>();
+    final api = context.read<AuthProvider>().api;
+    try {
+      if (!sync.online) {
+        await LocalDb.enqueue(_draft.clientUuid!, _draft.toJson());
+        await sync.refresh();
+        setState(() => _savedOffline = true);
+        return;
+      }
+      final res = await api.createCase(_draft);
+      setState(() => _matches = res);
+    } catch (_) {
+      await LocalDb.enqueue(_draft.clientUuid!, _draft.toJson());
+      await sync.refresh();
+      setState(() => _savedOffline = true);
+    } finally {
+      setState(() => _submitting = false);
+    }
+  }
+
+  Future<void> _confirm(String candidateId) async {
+    final api = context.read<AuthProvider>().api;
+    final created = _matches!.queryCaseId;
+    final missing = widget.caseType == 'missing' ? created : candidateId;
+    final found = widget.caseType == 'found' ? created : candidateId;
+    await api.decideMatch(missing, found, 'confirm');
+    setState(() => _reunited = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.watch<AppStrings>().t;
+    final title = widget.caseType == 'missing' ? t('home.reportMissing') : t('home.reportFound');
+
+    if (_reunited) {
+      return Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: Center(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.check_circle, color: Colors.green, size: 72),
+            const SizedBox(height: 12),
+            Text(t('match.reunited'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: () => Navigator.popUntil(context, (r) => r.isFirst), child: Text(t('nav.home'))),
+          ]),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (_matches == null && !_savedOffline) ...[
+              // Big voice button
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Column(children: [
+                    GestureDetector(
+                      onTap: _toggleListen,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 128, height: 128,
+                        decoration: BoxDecoration(color: _listening ? Colors.red : kSaffron, shape: BoxShape.circle, boxShadow: [BoxShadow(color: (_listening ? Colors.red : kSaffron).withOpacity(0.4), blurRadius: 24, spreadRadius: _listening ? 8 : 2)]),
+                        child: Icon(_listening ? Icons.stop : Icons.mic, color: Colors.white, size: 56),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(_listening ? t('intake.listening') : t('intake.tapToSpeak'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                    if (_heard.isNotEmpty) Padding(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6), child: Text('“$_heard”', style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.black54), textAlign: TextAlign.center)),
+                    if (_parsing) const Padding(padding: EdgeInsets.only(top: 8), child: Text('✨', style: TextStyle(fontSize: 18))),
+                    if (!_sttReady && !_listening) Padding(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6), child: Text(t('intake.speakHint'), style: const TextStyle(fontSize: 12, color: Colors.black38), textAlign: TextAlign.center)),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(t('intake.fillManually'), style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
+              const SizedBox(height: 8),
+              _form(t),
+              const SizedBox(height: 16),
+              FilledButton.icon(onPressed: _submitting ? null : _submit, icon: const Icon(Icons.send), label: Text(t('intake.submit'))),
+            ],
+            if (_submitting) Padding(padding: const EdgeInsets.all(24), child: Column(children: [const CircularProgressIndicator(color: kSaffron), const SizedBox(height: 12), Text(t('intake.scanning'))])),
+            if (_savedOffline) Padding(padding: const EdgeInsets.all(24), child: Column(children: [const Icon(Icons.wifi_off, color: Colors.amber, size: 56), const SizedBox(height: 12), Text(t('common.offline'), textAlign: TextAlign.center)])),
+            if (_matches != null) ..._results(t),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _form(String Function(String) t) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(children: [
+          TextField(controller: _name, decoration: InputDecoration(labelText: t('intake.name'))),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: _draft.gender,
+            decoration: InputDecoration(labelText: t('intake.gender')),
+            items: Config.genders.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+            onChanged: (v) => setState(() => _draft.gender = v),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: _draft.ageBand,
+            decoration: InputDecoration(labelText: t('intake.age')),
+            items: Config.ageBands.map((a) => DropdownMenuItem(value: a, child: Text(a))).toList(),
+            onChanged: (v) => setState(() => _draft.ageBand = v),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: _draft.language,
+            decoration: InputDecoration(labelText: t('intake.language')),
+            items: kLanguages.map((l) => DropdownMenuItem(value: l.announceName, child: Text(l.announceName))).toList(),
+            onChanged: (v) => setState(() => _draft.language = v),
+          ),
+          const SizedBox(height: 12),
+          TextField(controller: _desc, maxLines: 2, decoration: InputDecoration(labelText: t('intake.description'))),
+          const SizedBox(height: 12),
+          TextField(controller: _mobile, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: t('intake.mobile'))),
+          const SizedBox(height: 12),
+          Row(children: [
+            OutlinedButton.icon(onPressed: _takePhoto, icon: const Icon(Icons.camera_alt), label: Text(t('intake.takePhoto'))),
+            const SizedBox(width: 12),
+            if (_photoB64 != null) const Icon(Icons.check_circle, color: Colors.green),
+          ]),
+        ]),
+      ),
+    );
+  }
+
+  List<Widget> _results(String Function(String) t) {
+    final m = _matches!;
+    return [
+      Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(t('match.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+      if (m.needsDisambiguation && m.disambiguationQuestions.isNotEmpty)
+        Card(
+          color: const Color(0xFFFEF3C7),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: m.disambiguationQuestions.map((q) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('• ${q['question']}', style: const TextStyle(fontSize: 13)))).toList(),
+            ),
+          ),
+        ),
+      if (m.candidates.isEmpty)
+        Card(child: Padding(padding: const EdgeInsets.all(20), child: Text(t('match.noMatches')))),
+      ...m.candidates.map((c) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: MatchCardWidget(cand: c, onConfirm: () => _confirm(c.caseOut.id)),
+          )),
+    ];
+  }
+}
