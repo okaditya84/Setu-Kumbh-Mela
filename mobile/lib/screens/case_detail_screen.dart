@@ -269,7 +269,11 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           ],
           const SizedBox(height: 16),
           Text(t('match.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
+          const Padding(
+            padding: EdgeInsets.only(top: 2, bottom: 6),
+            child: Text('Other reports that may be the SAME person, from any center — confirm to reunite.',
+                style: TextStyle(fontSize: 12.5, color: Colors.black54)),
+          ),
           if (_matches != null && _matches!.candidates.isNotEmpty)
             ..._matches!.candidates.map((m) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),

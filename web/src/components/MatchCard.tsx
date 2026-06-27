@@ -42,7 +42,19 @@ export function MatchCard({
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
-              <p className="font-bold truncate">{c.person_name || t("common.unknown")}</p>
+              <div className="min-w-0">
+                {/* TYPE of the matched record — so the operator knows this is e.g. a
+                    FOUND person at another center, NOT a family member. */}
+                <span
+                  className={`inline-flex items-center gap-1 text-[11px] font-semibold rounded-full px-2 py-0.5 ${
+                    c.case_type === "found" ? "bg-teal-100 text-teal-800" : "bg-saffron-100 text-saffron-800"
+                  }`}
+                >
+                  {c.case_type === "found" ? "Found person" : "Missing report"}
+                  {c.reporting_center ? ` · ${c.reporting_center}` : ""}
+                </span>
+                <p className="font-bold truncate mt-0.5">{c.person_name || t("common.unknown")}</p>
+              </div>
               <Chip color={tier.color}>{t(`match.${cand.tier}`)} · {pct}%</Chip>
             </div>
             <p className="text-sm text-slate-500">
@@ -55,7 +67,6 @@ export function MatchCard({
               {c.last_seen_location && (
                 <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{c.last_seen_location}</span>
               )}
-              {c.reporting_center && <span>· {c.reporting_center}</span>}
             </div>
           </div>
         </div>

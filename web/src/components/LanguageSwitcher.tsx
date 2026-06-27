@@ -28,16 +28,13 @@ export function LanguageSwitcher() {
                 l.code === lang ? "border-saffron-500 bg-saffron-50" : "border-slate-200"
               }`}
             >
-              <span>
-                <span className="block font-semibold">{l.label}</span>
-                {!l.ui && <span className="block text-[11px] text-slate-400">voice + alerts</span>}
-              </span>
+              <span className="block font-semibold">{l.label}</span>
               {l.code === lang && <Check className="h-4 w-4 text-saffron-600" />}
             </button>
           ))}
         </div>
         <p className="mt-3 text-xs text-slate-400">
-          Voice input and audio announcements work in every listed language. UI text currently ships in English, हिन्दी and मराठी.
+          The whole app, voice input and audio announcements work in every listed language.
         </p>
       </Modal>
     </>

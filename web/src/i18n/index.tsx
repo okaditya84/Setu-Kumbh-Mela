@@ -2,15 +2,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { API } from "@/lib/config";
 import en, { type Dict } from "./dictionaries/en";
-import hi from "./dictionaries/hi";
-import mr from "./dictionaries/mr";
+import { ALL } from "./dictionaries/all";
 import { LANGUAGES, langByCode } from "./languages";
 
-// English/Hindi/Marathi ship bundled (instant, offline). Every other Indian
-// language is fetched LIVE from the backend (GET /i18n/{lang}, LLM-translated +
-// cached server-side), then cached in localStorage — so adding a language needs
-// no client code. Missing keys always fall back to English.
-const BUNDLED: Record<string, Partial<Dict>> = { en, hi, mr };
+// All listed Indian languages ship bundled (pre-translated, INSTANT, offline).
+// A language not in the bundle (future addition) is fetched live from the backend
+// (GET /i18n/{lang}) and cached. Missing keys always fall back to English.
+const BUNDLED: Record<string, Partial<Dict>> = ALL;
 const CACHE_PREFIX = "setu.dict.";
 
 type TFn = (key: keyof Dict | string, vars?: Record<string, string | number>) => string;

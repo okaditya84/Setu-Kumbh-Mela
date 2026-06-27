@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
+import 'translations.dart';
 
 /// Lightweight i18n. UI ships in English/Hindi/Marathi (missing keys fall back
 /// to English); every listed language is usable for voice + announcements.
@@ -205,10 +206,12 @@ class AppStrings extends ChangeNotifier {
   String get code => _code;
   LangDef get lang => kLanguages.firstWhere((l) => l.code == _code, orElse: () => kLanguages[0]);
 
+  bool _bundled(String c) => _dicts.containsKey(c) || kBundledExtra.containsKey(c);
+
   Future<void> load() async {
     final p = await SharedPreferences.getInstance();
     _code = p.getString('lang') ?? 'en';
-    if (!_dicts.containsKey(_code)) await _loadDynamic(_code);
+    if (!_bundled(_code)) await _loadDynamic(_code);
     notifyListeners();
   }
 
@@ -217,7 +220,7 @@ class AppStrings extends ChangeNotifier {
     final p = await SharedPreferences.getInstance();
     await p.setString('lang', c);
     notifyListeners();
-    if (!_dicts.containsKey(c)) await _loadDynamic(c);
+    if (!_bundled(c)) await _loadDynamic(c);
   }
 
   Future<void> _loadDynamic(String c) async {
@@ -242,9 +245,9 @@ class AppStrings extends ChangeNotifier {
   }
 
   String t(String key) {
-    if (_dicts.containsKey(_code)) {
-      return _dicts[_code]?[key] ?? _dicts['en']![key] ?? key;
-    }
-    return _dynamic?[key] ?? _dicts['en']![key] ?? key;
+    final en = _dicts['en']!;
+    if (_dicts.containsKey(_code)) return _dicts[_code]?[key] ?? en[key] ?? key;
+    if (kBundledExtra.containsKey(_code)) return kBundledExtra[_code]?[key] ?? en[key] ?? key;
+    return _dynamic?[key] ?? en[key] ?? key;
   }
 }

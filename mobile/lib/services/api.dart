@@ -39,6 +39,13 @@ class ApiClient {
     return MatchResponse.fromJson(_decode(r));
   }
 
+  /// Runs matching for a draft WITHOUT persisting it. Used to preview matches
+  /// before the user explicitly registers the report.
+  Future<MatchResponse> previewCase(CaseDraft d) async {
+    final r = await http.post(_u('/cases/preview'), headers: _headers, body: jsonEncode(d.toJson()));
+    return MatchResponse.fromJson(_decode(r));
+  }
+
   Future<List<CaseOut>> listCases({String? caseType, String? q, int limit = 60}) async {
     final params = {'limit': '$limit', if (caseType != null) 'case_type': caseType, if (q != null && q.isNotEmpty) 'q': q};
     final r = await http.get(_u('/cases', params), headers: _headers);

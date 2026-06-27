@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, X } from "lucide-react";
 
 export function Spinner({ className = "" }: { className?: string }) {
@@ -47,10 +48,16 @@ export function Modal({
   title?: string;
   children: React.ReactNode;
 }) {
-  if (!open) return null;
-  return (
+  // Render into document.body via a portal. Critical: the modal is position:fixed,
+  // but the header has backdrop-filter which makes it a containing block for fixed
+  // descendants — so an in-header modal would anchor to the header, not the viewport.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!open || !mounted) return null;
+
+  const node = (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
@@ -68,6 +75,7 @@ export function Modal({
       <style>{`@keyframes slideup{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
     </div>
   );
+  return createPortal(node, document.body);
 }
 
 export function Toast({ message, kind = "info" }: { message: string; kind?: "info" | "success" | "error" }) {

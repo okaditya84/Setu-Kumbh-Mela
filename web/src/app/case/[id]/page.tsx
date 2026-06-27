@@ -290,7 +290,10 @@ export default function CaseDetailPage() {
 
       {/* Right column: matches */}
       <div>
-      <h2 className="font-bold mb-2">{t("match.title")}</h2>
+      <h2 className="font-bold">{t("match.title")}</h2>
+      <p className="text-sm text-slate-500 mb-2">
+        Other reports that may be the SAME person, from any center — confirm to reunite.
+      </p>
       {busy && <div className="mb-2"><Spinner className="h-5 w-5 text-saffron-600" /></div>}
       <div className="space-y-3">
         {matches && matches.candidates.length > 0 ? (

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../i18n/strings.dart';
 import '../models/models.dart';
+import '../theme.dart';
+import 'case_badges.dart';
 
 class MatchCardWidget extends StatefulWidget {
   final MatchCandidate cand;
@@ -62,6 +64,36 @@ class _MatchCardWidgetState extends State<MatchCardWidget> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(c.personName ?? t('common.unknown'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 2),
+                          // Make the candidate's TYPE obvious: a found person at
+                          // another center is a match to reunite with, not a relative.
+                          Row(children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: (c.caseType == 'missing' ? kSaffron : kTeal).withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                typeLabel(c.caseType),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: c.caseType == 'missing' ? kSaffron : kTeal,
+                                ),
+                              ),
+                            ),
+                            if (c.reportingCenter != null && c.reportingCenter!.isNotEmpty)
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 6),
+                                  child: Text('@ ${c.reportingCenter}',
+                                      style: const TextStyle(color: Colors.black54, fontSize: 11),
+                                      overflow: TextOverflow.ellipsis),
+                                ),
+                              ),
+                          ]),
+                          const SizedBox(height: 2),
                           Text('${c.caseId} · ${c.gender ?? ''} · ${c.ageBand ?? ''}', style: const TextStyle(color: Colors.black54, fontSize: 12)),
                         ],
                       ),
