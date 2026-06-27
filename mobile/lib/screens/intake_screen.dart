@@ -123,6 +123,18 @@ class _IntakeScreenState extends State<IntakeScreen> {
     }
   }
 
+  Future<void> _refine(String field, String value) async {
+    if (_matches == null) return;
+    final key = field == 'stable' ? 'add_stable' : field;
+    setState(() => _submitting = true);
+    try {
+      final res = await context.read<AuthProvider>().api.refineCase(_matches!.queryCaseId, {key: value});
+      setState(() => _matches = res);
+    } finally {
+      setState(() => _submitting = false);
+    }
+  }
+
   Future<void> _confirm(String candidateId) async {
     final api = context.read<AuthProvider>().api;
     final created = _matches!.queryCaseId;
@@ -250,7 +262,20 @@ class _IntakeScreenState extends State<IntakeScreen> {
             padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: m.disambiguationQuestions.map((q) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('• ${q['question']}', style: const TextStyle(fontSize: 13)))).toList(),
+              children: m.disambiguationQuestions.map((q) {
+                final opts = (q['options'] as List?)?.cast<String>() ?? [];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(q['question']?.toString() ?? '', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Wrap(spacing: 6, runSpacing: 6, children: opts.map((o) => ActionChip(
+                          label: Text(o, style: const TextStyle(fontSize: 12)),
+                          onPressed: () => _refine(q['field']?.toString() ?? '', o),
+                        )).toList()),
+                  ]),
+                );
+              }).toList(),
             ),
           ),
         ),

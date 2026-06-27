@@ -127,6 +127,38 @@ def create_case(db: Session, payload: CaseCreate, actor: str = "system",
     return case
 
 
+def refine_case(db: Session, case: Case, refine, actor: str = "system") -> Case:
+    """Apply a disambiguation answer to a case, re-normalize, and bump version."""
+    for attr in ("gender", "age_band", "language", "state", "district"):
+        val = getattr(refine, attr, None)
+        if val:
+            setattr(case, attr, val)
+    if refine.last_seen_location:
+        case.last_seen_location = refine.last_seen_location
+        coords = resolve_location(refine.last_seen_location)
+        if coords:
+            case.last_seen_lat, case.last_seen_lng = coords
+            case.geo_cell = geo_cell(*coords)
+    if refine.extra_description:
+        case.physical_description = ((case.physical_description or "") + " " + refine.extra_description).strip()
+
+    # Recompute structured fields, then fold in an explicitly answered trait.
+    normalized = build_normalized(
+        person_name=case.person_name, age_band=case.age_band,
+        physical_description=case.physical_description,
+    )
+    if refine.add_stable:
+        stable = set(normalized.get("stable", []))
+        stable.add(refine.add_stable)
+        normalized["stable"] = sorted(stable)
+    case.normalized = normalized
+    case.age_band = case.age_band or normalized.get("inferred_age_band")
+    case.version += 1
+    audit(db, "case.refine", actor=actor, entity_type="case", entity_id=case.id)
+    db.flush()
+    return case
+
+
 def purge_pii(case: Case) -> None:
     """Scrub identifying fields, keep non-identifying attributes for statistics."""
     case.person_name = None

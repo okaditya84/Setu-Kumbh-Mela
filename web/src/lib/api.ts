@@ -63,6 +63,9 @@ export const api = {
   getCase: (id: string) => req<CaseOut>(`/cases/${id}`),
   caseMatches: (id: string) => req<MatchResponse>(`/cases/${id}/matches`),
 
+  refineCase: (id: string, answer: Record<string, string>) =>
+    req<MatchResponse>(`/cases/${id}/refine`, { method: "POST", body: JSON.stringify(answer) }),
+
   updateStatus: (id: string, status: string, matched_case_id?: string) =>
     req<CaseOut>(`/cases/${id}/status`, {
       method: "PATCH",
