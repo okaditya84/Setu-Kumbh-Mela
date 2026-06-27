@@ -233,13 +233,18 @@ export function VoiceCapture({ onResult, onInterim, onServerDraft, caseType, sto
         </span>
       </button>
 
-      <p className="font-semibold text-slate-700">
+      <p className="font-semibold text-slate-700 text-center">
         {uploading ? (
           <span className="inline-flex items-center gap-1.5">
-            <Cloud className="h-4 w-4" /> Transcribing…
+            <Cloud className="h-4 w-4 animate-pulse" /> Transcribing your recording…
           </span>
         ) : listening ? (
-          t("intake.listening")
+          <span className="inline-flex flex-col items-center">
+            <span className="inline-flex items-center gap-1.5 text-red-600">
+              <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" /> Recording…
+            </span>
+            <span className="text-sm font-normal text-slate-500">Tap the red button to stop &amp; transcribe</span>
+          </span>
         ) : (
           t("intake.tapToSpeak")
         )}
@@ -254,7 +259,9 @@ export function VoiceCapture({ onResult, onInterim, onServerDraft, caseType, sto
               {interim && <span className="text-slate-400 italic"> {interim}</span>}
             </p>
           ) : (
-            <p className="text-sm text-slate-400 italic">{t("intake.listening")}…</p>
+            <p className="text-sm text-slate-400 italic">
+              {uploading ? "Transcribing…" : "Speak now — your words will appear here after you tap stop."}
+            </p>
           )}
         </div>
       )}
