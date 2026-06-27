@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -132,6 +133,17 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     );
   }
 
+  Widget _photo(String? url) {
+    if (url != null && url.startsWith('data:image')) {
+      try {
+        return ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.memory(base64Decode(url.substring(url.indexOf(',') + 1)), width: 72, height: 72, fit: BoxFit.cover));
+      } catch (_) {}
+    } else if (url != null && url.startsWith('http')) {
+      return ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(url, width: 72, height: 72, fit: BoxFit.cover));
+    }
+    return Container(width: 72, height: 72, decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.person, color: Colors.black26, size: 36));
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.watch<AppStrings>().t;
@@ -148,10 +160,18 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(c.personName ?? t('common.unknown'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('${c.gender ?? ''} · ${c.ageBand ?? ''} · ${c.language ?? ''}', style: const TextStyle(color: Colors.black54)),
-                Text('${c.state ?? ''} · ${c.lastSeenLocation ?? ''}', style: const TextStyle(color: Colors.black54)),
-                Chip(label: Text(c.status), visualDensity: VisualDensity.compact),
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  _photo(c.photoUrl),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(c.personName ?? t('common.unknown'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('${c.gender ?? ''} · ${c.ageBand ?? ''} · ${c.language ?? ''}', style: const TextStyle(color: Colors.black54)),
+                      Text('${c.state ?? ''} · ${c.lastSeenLocation ?? ''}', style: const TextStyle(color: Colors.black54)),
+                      Chip(label: Text(c.status), visualDensity: VisualDensity.compact),
+                    ]),
+                  ),
+                ]),
                 if (c.physicalDescription != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(c.physicalDescription!)),
               ]),
             ),
@@ -203,7 +223,12 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           if (_matches != null && _matches!.candidates.isNotEmpty)
             ..._matches!.candidates.map((m) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: MatchCardWidget(cand: m, confirming: _busy, onConfirm: c.status != 'Reunited' ? () => _confirm(m.caseOut.id) : null),
+                  child: MatchCardWidget(
+                    cand: m,
+                    confirming: _busy,
+                    onConfirm: c.status != 'Reunited' ? () => _confirm(m.caseOut.id) : null,
+                    onView: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CaseDetailScreen(caseId: m.caseOut.id))),
+                  ),
                 ))
           else
             Card(child: Padding(padding: const EdgeInsets.all(20), child: Text(t('match.noMatches')))),

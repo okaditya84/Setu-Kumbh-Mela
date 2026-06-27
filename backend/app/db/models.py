@@ -111,6 +111,8 @@ class Case(Base):
 
     # --- media ---
     photo_url: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    # Optional face embedding (list[float]) for automated photo matching.
+    face_embedding: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
 
     # --- anti-impersonation: a secret only the real family/person knows ---
     secret_question: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)

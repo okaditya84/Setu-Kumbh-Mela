@@ -26,6 +26,7 @@ from app.core.config import settings
 from app.db.models import Case
 from app.geo.distance import haversine_km
 from app.geo.gazetteer import resolve_location
+from app.matching.face import cosine as face_cosine
 
 
 @dataclass
@@ -78,6 +79,18 @@ def score_pair(a: Case, b: Case) -> ScoreResult:
         nonlocal total
         total += w
         lines.append({"field": field_name, "detail": detail, "weight": round(w, 3)})
+
+    # --- face similarity (dominant when both have a photo embedding) ---------
+    fsim = face_cosine(a.face_embedding, b.face_embedding)
+    if fsim is not None:
+        if fsim >= s.FACE_STRONG_SIM:
+            add("face", f"faces match ({fsim:.2f})", s.W_FACE_MATCH)
+        elif fsim <= s.FACE_WEAK_SIM:
+            add("face", f"faces differ ({fsim:.2f})", s.W_FACE_MISMATCH)
+        else:
+            # Interpolate between mismatch and match across the uncertain band.
+            frac = (fsim - s.FACE_WEAK_SIM) / max(0.01, s.FACE_STRONG_SIM - s.FACE_WEAK_SIM)
+            add("face", f"face similarity {fsim:.2f}", s.W_FACE_MISMATCH + frac * (s.W_FACE_MATCH - s.W_FACE_MISMATCH))
 
     # --- mobile (exact hashed) : near-certain identity -----------------------
     if a.reporter_mobile_hash and b.reporter_mobile_hash:

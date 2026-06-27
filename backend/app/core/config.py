@@ -63,6 +63,14 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE: float = 0.0
     LLM_MAX_TOKENS: int = 1024
     LLM_TIMEOUT_SECONDS: float = 30.0
+    # Use the LLM to rephrase the top match explanation. Turn off to save cost /
+    # latency (the deterministic explanation is always present as a fallback).
+    MATCH_LLM_EXPLANATIONS: bool = True
+    # Re-run LLM attribute extraction when a case is CREATED. Off by default: the
+    # voice intake path (/intake/parse) already does LLM extraction, and the
+    # deterministic normalizer covers structured submits — so this would be a
+    # redundant per-report LLM call on the hot path. Enable only if desired.
+    INTAKE_LLM_ENRICH: bool = False
 
     # ----------------------------- Voice (optional) -----------------------
     # provider: sarvam | deepgram | elevenlabs | openai | none
@@ -80,6 +88,24 @@ class Settings(BaseSettings):
     S3_ACCESS_KEY: Optional[str] = None
     S3_SECRET_KEY: Optional[str] = None
     S3_PUBLIC_BASE_URL: Optional[str] = None
+
+    # ----------------------------- Face embeddings (optional) -------------
+    # Turns a photo into a vector so face similarity becomes a dominant matching
+    # signal. provider: none | http
+    #   http -> POST the image to an embedding service that returns a vector.
+    # Default "none": photos are still captured, shown and used for HUMAN
+    # identification (families recognise by sight) — just not auto-embedded.
+    # Kept off by default so the free-tier deploy stays light (no heavy model).
+    FACE_PROVIDER: str = "none"
+    FACE_API_URL: Optional[str] = None     # e.g. a hosted face-embedding endpoint
+    FACE_API_KEY: Optional[str] = None
+    FACE_MODEL: Optional[str] = None
+    FACE_TIMEOUT_SECONDS: float = 30.0
+    # Face similarity weights (dominant when both sides have a photo embedding).
+    W_FACE_MATCH: float = 9.0       # cosine >= FACE_STRONG_SIM => near-certain
+    W_FACE_MISMATCH: float = -6.0   # both have faces but clearly different
+    FACE_STRONG_SIM: float = 0.82
+    FACE_WEAK_SIM: float = 0.55
 
     # ----------------------------- Maps -----------------------------------
     # The web/mobile clients use OpenStreetMap (no key). A MapTiler/Stadia key

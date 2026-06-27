@@ -35,7 +35,7 @@ def build_match_response(db: Session, query: Case, persist: bool = True,
     candidates = result["candidates"]
 
     # Optionally let the LLM rephrase the single best explanation (cheap, 1 call).
-    if enrich_top and candidates:
+    if enrich_top and settings.MATCH_LLM_EXPLANATIONS and candidates:
         top = candidates[0]
         better = explain_match({
             "probability": top["probability"],
