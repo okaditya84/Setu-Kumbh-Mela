@@ -40,12 +40,32 @@ data/      reference datasets (CSV + KML)
 # Backend (works with zero keys)
 cd backend && python3 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt && uvicorn app.main:app --reload
+
+# Web (new terminal)
+cd web && npm install && npm run dev   # set NEXT_PUBLIC_API_BASE in .env.local
+
+# …or the whole stack at once
+docker compose up --build
 ```
-Then see [`docs/`](docs/) for the web app, mobile app, env keys, and deployment.
+Demo logins: `volunteer / volunteer123` · `admin / admin123`.
+
+## Docs
+- [`docs/ENV_SETUP.md`](docs/ENV_SETUP.md) — get every API key (non-technical, step-by-step)
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how it all fits + the matching pipeline
+- [`docs/API.md`](docs/API.md) — the API contract (web + mobile)
+- [`docs/DEPLOY.md`](docs/DEPLOY.md) — Render + Vercel + APK + Docker
+
+## Identification is media-first
+For the at-risk group (elderly, children), photo + voice are the most reliable
+identifiers. Both ways: a family describes/records their relative and the system
+surfaces candidate **photos to see and voice samples to hear** for confirmation;
+a found person's photo + voice are captured at the desk. An optional, env-pluggable
+face-embedding layer turns photos into a dominant automated matching signal too.
 
 ## Roles
 - **Volunteer** — voice/quick intake of missing & found, see ranked matches, reunite.
 - **Admin / Control room** — live map, hotspots, metrics, audit feed, privacy purge.
 
 ## Status
-Backend: complete + tested. Web + mobile clients and full docs: in progress.
+Backend (tested), web PWA, Flutter app, and full docs: complete. Optional LLM,
+voice STT and face-embedding providers are env-pluggable and off by default.
