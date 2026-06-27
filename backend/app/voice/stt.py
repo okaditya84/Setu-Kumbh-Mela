@@ -83,13 +83,24 @@ def _sarvam_lang(lang: Optional[str]) -> str:
 def _sarvam(blob: bytes, content_type: str, lang: str) -> Optional[str]:
     base = settings.VOICE_BASE_URL or "https://api.sarvam.ai"
     model = settings.VOICE_MODEL or "saarika:v2.5"
-    ext = (content_type.split("/")[-1] or "webm").split(";")[0]
-    files = {"file": (f"audio.{ext}", blob, content_type)}
-    data = {"model": model, "language_code": _sarvam_lang(lang)}
+    # Clean the content-type ("audio/webm;codecs=opus" -> "audio/webm") and ext.
+    clean_ct = content_type.split(";")[0].strip() or "audio/webm"
+    ext = (clean_ct.split("/")[-1] or "webm")
+    files = {"file": (f"audio.{ext}", blob, clean_ct)}
     headers = {"api-subscription-key": settings.VOICE_API_KEY}
+
+    # "saaras" models are speech-to-text-TRANSLATE (auto-detect → English text)
+    # and live on a different endpoint; "saarika" models transcribe in-language.
+    if model.lower().startswith("saaras"):
+        endpoint, data = "/speech-to-text-translate", {"model": model}
+    else:
+        endpoint, data = "/speech-to-text", {"model": model, "language_code": _sarvam_lang(lang)}
+
     with httpx.Client(timeout=60) as c:
-        r = c.post(f"{base}/speech-to-text", files=files, data=data, headers=headers)
-        r.raise_for_status()
+        r = c.post(f"{base}{endpoint}", files=files, data=data, headers=headers)
+        if r.status_code >= 400:
+            logger.warning(f"Sarvam {endpoint} {r.status_code}: {r.text[:300]}")
+            r.raise_for_status()
         return r.json().get("transcript") or None
 
 
