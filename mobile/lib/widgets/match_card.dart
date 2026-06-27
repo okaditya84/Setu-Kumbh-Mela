@@ -1,17 +1,13 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../i18n/strings.dart';
 import '../models/models.dart';
-import '../theme.dart';
-import 'case_badges.dart';
 
 class MatchCardWidget extends StatefulWidget {
   final MatchCandidate cand;
   final VoidCallback? onConfirm;
-  final VoidCallback? onView; // open full record: photo + voice playback
   final bool confirming;
-  const MatchCardWidget({super.key, required this.cand, this.onConfirm, this.onView, this.confirming = false});
+  const MatchCardWidget({super.key, required this.cand, this.onConfirm, this.confirming = false});
 
   @override
   State<MatchCardWidget> createState() => _MatchCardWidgetState();
@@ -25,19 +21,6 @@ class _MatchCardWidgetState extends State<MatchCardWidget> {
         'possible' => Colors.amber.shade700,
         _ => Colors.grey,
       };
-
-  Widget _avatar(CaseOut c) {
-    final url = c.photoUrl;
-    if (url != null && url.startsWith('data:image')) {
-      try {
-        final b64 = url.substring(url.indexOf(',') + 1);
-        return CircleAvatar(radius: 24, backgroundImage: MemoryImage(base64Decode(b64)));
-      } catch (_) {}
-    } else if (url != null && url.startsWith('http')) {
-      return CircleAvatar(radius: 24, backgroundImage: NetworkImage(url));
-    }
-    return CircleAvatar(radius: 24, backgroundColor: const Color(0xFFF1F5F9), child: Text((c.personName ?? '?').characters.first));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,43 +40,13 @@ class _MatchCardWidgetState extends State<MatchCardWidget> {
               children: [
                 Row(
                   children: [
-                    _avatar(c),
+                    CircleAvatar(radius: 22, backgroundColor: const Color(0xFFF1F5F9), child: Text((c.personName ?? '?').characters.first)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(c.personName ?? t('common.unknown'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          const SizedBox(height: 2),
-                          // Make the candidate's TYPE obvious: a found person at
-                          // another center is a match to reunite with, not a relative.
-                          Row(children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: (c.caseType == 'missing' ? kSaffron : kTeal).withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                typeLabel(c.caseType),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: c.caseType == 'missing' ? kSaffron : kTeal,
-                                ),
-                              ),
-                            ),
-                            if (c.reportingCenter != null && c.reportingCenter!.isNotEmpty)
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(left: 6),
-                                  child: Text('@ ${c.reportingCenter}',
-                                      style: const TextStyle(color: Colors.black54, fontSize: 11),
-                                      overflow: TextOverflow.ellipsis),
-                                ),
-                              ),
-                          ]),
-                          const SizedBox(height: 2),
                           Text('${c.caseId} · ${c.gender ?? ''} · ${c.ageBand ?? ''}', style: const TextStyle(color: Colors.black54, fontSize: 12)),
                         ],
                       ),
@@ -122,21 +75,13 @@ class _MatchCardWidgetState extends State<MatchCardWidget> {
                       icon: Icon(_open ? Icons.expand_less : Icons.expand_more, size: 18),
                       label: Text(t('match.why')),
                     ),
-                    Row(mainAxisSize: MainAxisSize.min, children: [
-                      if (widget.onView != null)
-                        IconButton(
-                          onPressed: widget.onView,
-                          tooltip: 'Photo & voice',
-                          icon: const Icon(Icons.photo_camera_front, color: Color(0xFFEA580C)),
-                        ),
-                      if (widget.onConfirm != null)
-                        FilledButton.tonalIcon(
-                          onPressed: widget.confirming ? null : widget.onConfirm,
-                          icon: const Icon(Icons.handshake, size: 18),
-                          label: Text(t('match.confirmReunion')),
-                          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D9488), foregroundColor: Colors.white),
-                        ),
-                    ]),
+                    if (widget.onConfirm != null)
+                      FilledButton.tonalIcon(
+                        onPressed: widget.confirming ? null : widget.onConfirm,
+                        icon: const Icon(Icons.handshake, size: 18),
+                        label: Text(t('match.confirmReunion')),
+                        style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D9488), foregroundColor: Colors.white, minimumSize: const Size(0, 44)),
+                      ),
                   ],
                 ),
                 if (_open)

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -12,9 +11,7 @@ import '../i18n/strings.dart';
 import '../models/models.dart';
 import '../services/auth.dart';
 import '../theme.dart';
-import '../widgets/case_badges.dart';
 import '../widgets/match_card.dart';
-import '../widgets/responsive.dart';
 
 class CaseDetailScreen extends StatefulWidget {
   final String caseId;
@@ -85,49 +82,9 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     }
   }
 
-  /// Speaks [text] aloud in the current language. flutter_tts can't synthesise
-  /// most Indian languages on-device, so try server TTS first (real audio in
-  /// the target language) and only fall back to on-device TTS if unavailable.
   Future<void> _speak(String text) async {
-    final lang = context.read<AppStrings>().lang;
-    final api = context.read<AuthProvider>().api;
-    try {
-      final wav = await api.tts(text, lang.announceName);
-      if (wav != null) {
-        await _player.play(BytesSource(wav));
-        return;
-      }
-    } catch (_) {
-      // fall through to on-device TTS
-    }
-    await _tts.setLanguage(lang.speechLocale);
+    await _tts.setLanguage(context.read<AppStrings>().lang.speechLocale);
     await _tts.speak(text);
-  }
-
-  /// Voice sample audio is behind a bearer-protected endpoint, so a plain URL
-  /// source would 401. Fetch the bytes with auth, then play from memory.
-  Future<void> _playVoice(String sampleId) async {
-    final api = context.read<AuthProvider>().api;
-    try {
-      final bytes = await api.audioBytes(sampleId);
-      await _player.play(BytesSource(bytes));
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not play this voice sample')),
-        );
-      }
-    }
-  }
-
-  Future<void> _setStatus(String status) async {
-    setState(() => _busy = true);
-    try {
-      await context.read<AuthProvider>().api.updateStatus(widget.caseId, status);
-      await _load();
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
   }
 
   Future<void> _confirm(String candidateId) async {
@@ -175,17 +132,6 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     );
   }
 
-  Widget _photo(String? url) {
-    if (url != null && url.startsWith('data:image')) {
-      try {
-        return ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.memory(base64Decode(url.substring(url.indexOf(',') + 1)), width: 72, height: 72, fit: BoxFit.cover));
-      } catch (_) {}
-    } else if (url != null && url.startsWith('http')) {
-      return ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(url, width: 72, height: 72, fit: BoxFit.cover));
-    }
-    return Container(width: 72, height: 72, decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.person, color: Colors.black26, size: 36));
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.watch<AppStrings>().t;
@@ -195,31 +141,17 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     }
     return Scaffold(
       appBar: AppBar(title: Text(c.caseId)),
-      body: ResponsiveBody(
-        child: ListView(
+      body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  _photo(c.photoUrl),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Expanded(child: Text(c.personName ?? t('common.unknown'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-                        const SizedBox(width: 8),
-                        TypeTag(caseType: c.caseType),
-                      ]),
-                      Text('${c.gender ?? ''} · ${c.ageBand ?? ''} · ${c.language ?? ''}', style: const TextStyle(color: Colors.black54)),
-                      Text('${c.state ?? ''} · ${c.lastSeenLocation ?? ''}', style: const TextStyle(color: Colors.black54)),
-                      const SizedBox(height: 8),
-                      Align(alignment: Alignment.centerLeft, child: StatusChip(status: c.status)),
-                    ]),
-                  ),
-                ]),
+                Text(c.personName ?? t('common.unknown'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('${c.gender ?? ''} · ${c.ageBand ?? ''} · ${c.language ?? ''}', style: const TextStyle(color: Colors.black54)),
+                Text('${c.state ?? ''} · ${c.lastSeenLocation ?? ''}', style: const TextStyle(color: Colors.black54)),
+                Chip(label: Text(c.status), visualDensity: VisualDensity.compact),
                 if (c.physicalDescription != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(c.physicalDescription!)),
               ]),
             ),
@@ -230,9 +162,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
             OutlinedButton.icon(onPressed: _toggleRecord, icon: Icon(_recording ? Icons.stop : Icons.mic), label: Text(_recording ? '● rec' : 'Voice')),
             if (c.hasSecret) OutlinedButton.icon(onPressed: _verify, icon: const Icon(Icons.verified_user), label: Text(t('case.verify'))),
             if (c.status != 'Reunited')
-              FilledButton.icon(onPressed: _busy ? null : () => _setStatus('Reunited'), icon: const Icon(Icons.check), label: Text(t('case.markReunited'))),
-            if (c.status != 'Transferred to hospital' && c.status != 'Reunited')
-              OutlinedButton.icon(onPressed: _busy ? null : () => _setStatus('Transferred to hospital'), icon: const Icon(Icons.local_hospital), label: const Text('Transferred to hospital')),
+              FilledButton.icon(onPressed: _busy ? null : () async { await context.read<AuthProvider>().api.updateStatus(widget.caseId, 'Reunited'); await _load(); }, icon: const Icon(Icons.check), label: Text(t('case.markReunited')), style: FilledButton.styleFrom(minimumSize: const Size(0, 44))),
           ]),
           if (_announcement != null) ...[
             const SizedBox(height: 12),
@@ -259,7 +189,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
                   const Text('Voice samples', style: TextStyle(fontWeight: FontWeight.bold)),
                   ..._voices.map((v) => ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: IconButton(icon: const Icon(Icons.play_circle, color: kSaffron), onPressed: () => _playVoice(v['id'].toString())),
+                        leading: IconButton(icon: const Icon(Icons.play_circle, color: kSaffron), onPressed: () => _player.play(UrlSource(context.read<AuthProvider>().api.audioUrl(v['id'])))),
                         title: Text(v['kind'] ?? 'sample'),
                         subtitle: v['transcript'] != null ? Text('“${v['transcript']}”', style: const TextStyle(fontStyle: FontStyle.italic)) : null,
                       )),
@@ -269,25 +199,15 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           ],
           const SizedBox(height: 16),
           Text(t('match.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const Padding(
-            padding: EdgeInsets.only(top: 2, bottom: 6),
-            child: Text('Other reports that may be the SAME person, from any center — confirm to reunite.',
-                style: TextStyle(fontSize: 12.5, color: Colors.black54)),
-          ),
+          const SizedBox(height: 8),
           if (_matches != null && _matches!.candidates.isNotEmpty)
             ..._matches!.candidates.map((m) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: MatchCardWidget(
-                    cand: m,
-                    confirming: _busy,
-                    onConfirm: c.status != 'Reunited' ? () => _confirm(m.caseOut.id) : null,
-                    onView: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CaseDetailScreen(caseId: m.caseOut.id))),
-                  ),
+                  child: MatchCardWidget(cand: m, confirming: _busy, onConfirm: c.status != 'Reunited' ? () => _confirm(m.caseOut.id) : null),
                 ))
           else
             Card(child: Padding(padding: const EdgeInsets.all(20), child: Text(t('match.noMatches')))),
         ],
-        ),
       ),
     );
   }

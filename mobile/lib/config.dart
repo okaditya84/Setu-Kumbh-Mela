@@ -9,7 +9,9 @@
 class Config {
   static const String apiBase = String.fromEnvironment(
     'API_BASE',
-    defaultValue: 'http://10.0.2.2:8000',
+    // Physical device over USB (requires: adb reverse tcp:8000 tcp:8000)
+    // For Android emulator use: http://10.0.2.2:8000
+    defaultValue: 'http://127.0.0.1:8000',
   );
   static String get api => '$apiBase/api/v1';
 

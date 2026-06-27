@@ -24,9 +24,8 @@ export function LanguageSwitcher() {
                 setLang(l.code);
                 setOpen(false);
               }}
-              className={`flex items-center justify-between rounded-xl border px-3 py-3 text-left ${
-                l.code === lang ? "border-saffron-500 bg-saffron-50" : "border-slate-200"
-              }`}
+              className={`flex items-center justify-between rounded-xl border px-3 py-3 text-left ${l.code === lang ? "border-saffron-500 bg-saffron-50" : "border-slate-200"
+                }`}
             >
               <span className="block font-semibold">{l.label}</span>
               {l.code === lang && <Check className="h-4 w-4 text-saffron-600" />}
