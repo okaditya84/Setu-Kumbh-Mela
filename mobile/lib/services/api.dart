@@ -50,6 +50,10 @@ class ApiClient {
   Future<MatchResponse> caseMatches(String id) async =>
       MatchResponse.fromJson(_decode(await http.get(_u('/cases/$id/matches'), headers: _headers)));
 
+  Future<MatchResponse> refineCase(String id, Map<String, String> answer) async =>
+      MatchResponse.fromJson(_decode(
+          await http.post(_u('/cases/$id/refine'), headers: _headers, body: jsonEncode(answer))));
+
   Future<void> decideMatch(String missingId, String foundId, String decision) async {
     _decode(await http.post(_u('/matches/decide'),
         headers: _headers,

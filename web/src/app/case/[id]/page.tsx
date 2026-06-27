@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Volume2, Play, ShieldCheck, CheckCircle2, Hospital, Megaphone } from "lucide-react";
+import { Volume2, Play, ShieldCheck, CheckCircle2, Hospital, Megaphone, Mic, Square } from "lucide-react";
 import { AppFrame } from "@/components/AppFrame";
 import { MatchCard } from "@/components/MatchCard";
 import { Chip, Spinner, Modal, Scanning } from "@/components/ui";
@@ -21,6 +21,9 @@ export default function CaseDetailPage() {
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [answer, setAnswer] = useState("");
   const [verifyResult, setVerifyResult] = useState<{ verified: boolean; message: string } | null>(null);
+  const [recording, setRecording] = useState(false);
+  const recRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   async function load() {
     const [cc, m, v] = await Promise.all([api.getCase(id), api.caseMatches(id), api.listVoice(id)]);
@@ -79,6 +82,31 @@ export default function CaseDetailPage() {
     setVerifyResult(await api.verify(id, answer));
   }
 
+  async function toggleRecord() {
+    if (recording) {
+      recRef.current?.stop();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => e.data.size && chunksRef.current.push(e.data);
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        setRecording(false);
+        await api.uploadVoice(id, blob, "description", announceName);
+        await load();
+      };
+      recRef.current = mr;
+      mr.start();
+      setRecording(true);
+    } catch {
+      setRecording(false);
+    }
+  }
+
   if (!c) return <AppFrame><div className="mt-10"><Scanning label={t("common.loading")} /></div></AppFrame>;
 
   return (
@@ -114,6 +142,9 @@ export default function CaseDetailPage() {
       <div className="grid grid-cols-2 gap-2 mb-3">
         <button onClick={makeAnnouncement} disabled={busy} className="btn-ghost">
           <Megaphone className="h-4 w-4" /> {t("case.generateAnnouncement")}
+        </button>
+        <button onClick={toggleRecord} className={recording ? "btn-primary" : "btn-ghost"}>
+          {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />} {t("intake.recordVoice")}
         </button>
         {c.has_secret && (
           <button onClick={() => setVerifyOpen(true)} className="btn-ghost">

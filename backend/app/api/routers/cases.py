@@ -14,6 +14,7 @@ from app.schemas.models import (
     AnnouncementResponse,
     CaseCreate,
     CaseOut,
+    CaseRefine,
     CaseStatusUpdate,
     MatchResponse,
 )
@@ -90,6 +91,23 @@ def case_matches(case_id: str, db: Session = Depends(get_db), user: CurrentUser 
     c = db.get(Case, case_id)
     if not c:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
+    return build_match_response(db, c)
+
+
+@router.post("/{case_id}/refine", response_model=MatchResponse)
+def refine_case(
+    case_id: str,
+    payload: CaseRefine,
+    db: Session = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Apply a disambiguation answer, then return the narrowed matches."""
+    c = db.get(Case, case_id)
+    if not c:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Case not found")
+    case_service.refine_case(db, c, payload, actor=user.id)
+    db.commit()
+    db.refresh(c)
     return build_match_response(db, c)
 
 

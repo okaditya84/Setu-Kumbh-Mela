@@ -86,6 +86,14 @@ def functional(client: httpx.Client) -> None:
         check("top candidate has an explanation", bool(top["explanation"]))
         check("top candidate has evidence breakdown", len(top["breakdown"]) > 0)
 
+    # disambiguation refine: answering updates the case and re-matches
+    ref = client.post(f"{API}/cases/{found_id}/refine", headers=vol,
+                      json={"state": "Maharashtra", "add_stable": "walking_stick"}).json()
+    check("refine returns a fresh match set", "candidates" in ref and ref.get("query_case_id") == found_id)
+    upd = client.get(f"{API}/cases/{found_id}", headers=vol).json()
+    check("refine updated the case (stable trait applied)",
+          "walking_stick" in (upd.get("normalized", {}).get("stable") or []))
+
     # anti-impersonation verify (real hashing)
     v_ok = client.post(f"{API}/cases/{missing_id}/verify", headers=vol, json={"answer": "ozar"}).json()
     v_no = client.post(f"{API}/cases/{missing_id}/verify", headers=vol, json={"answer": "wrong"}).json()

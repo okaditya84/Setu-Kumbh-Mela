@@ -92,6 +92,18 @@ function IntakeInner() {
     }
   }
 
+  async function refine(field: string, value: string) {
+    if (!createdId) return;
+    const key = field === "stable" ? "add_stable" : field;
+    setSubmitting(true);
+    try {
+      const res = await api.refineCase(createdId, { [key]: value });
+      setMatches(res);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function confirm(candidateCaseId: string) {
     if (!createdId) return;
     setConfirmingId(candidateCaseId);
@@ -269,7 +281,11 @@ function IntakeInner() {
                 <div key={i} className="mb-2">
                   <p className="text-sm font-medium">{q.question}</p>
                   <div className="flex flex-wrap gap-1.5 mt-1">
-                    {q.options.map((o) => <Chip key={o} color="amber">{o}</Chip>)}
+                    {q.options.map((o) => (
+                      <button key={o} onClick={() => refine(q.field, o)} className="chip bg-amber-100 text-amber-800 hover:bg-amber-200">
+                        {o}
+                      </button>
+                    ))}
                   </div>
                 </div>
               ))}

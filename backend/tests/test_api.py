@@ -75,6 +75,20 @@ def test_verify_secret(client, vol_headers):
     assert client.post(f"/api/v1/cases/{cid}/verify", json={"answer": "wrong"}, headers=vol_headers).json()["verified"] is False
 
 
+def test_refine_updates_case_and_rematches(client, vol_headers):
+    f = client.post("/api/v1/cases", json={
+        "case_type": "found", "gender": "Female", "age_band": "61-70", "last_seen_location": "Ramkund Ghat",
+        "physical_description": "elderly lady",
+    }, headers=vol_headers).json()
+    cid = f["query_case_id"]
+    r = client.post(f"/api/v1/cases/{cid}/refine", json={"language": "Marathi", "add_stable": "walking_stick"}, headers=vol_headers)
+    assert r.status_code == 200
+    assert "candidates" in r.json()
+    case = client.get(f"/api/v1/cases/{cid}", headers=vol_headers).json()
+    assert case["language"] == "Marathi"
+    assert "walking_stick" in case["normalized"].get("stable", [])
+
+
 def test_intake_parse_text(client, vol_headers):
     r = client.post("/api/v1/intake/parse", json={
         "transcript": "ek lady hai, white saree pehni hai, walking stick hai", "case_type": "found"

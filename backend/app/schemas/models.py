@@ -50,6 +50,18 @@ class CaseStatusUpdate(BaseModel):
     matched_case_id: Optional[str] = None
 
 
+class CaseRefine(BaseModel):
+    """Answer to a disambiguation question — updates the case and re-matches."""
+    gender: Optional[str] = None
+    age_band: Optional[str] = None
+    language: Optional[str] = None
+    state: Optional[str] = None
+    district: Optional[str] = None
+    last_seen_location: Optional[str] = None
+    add_stable: Optional[str] = None       # a distinguishing trait (e.g. walking_stick)
+    extra_description: Optional[str] = None
+
+
 class CaseOut(BaseModel):
     id: str
     client_uuid: str
