@@ -22,7 +22,7 @@ export default function LoginPage() {
     try {
       const auth = await api.login(username.trim(), password);
       setAuth(auth);
-      router.replace("/");
+      router.replace("/dashboard");
     } catch {
       setError(true);
     } finally {

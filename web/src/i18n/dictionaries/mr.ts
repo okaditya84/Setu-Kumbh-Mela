@@ -124,5 +124,13 @@ const mr: Partial<Dict> = {
   "sync.queued": "{n} नोंदी सिंक होण्याच्या प्रतीक्षेत",
   "sync.syncing": "सिंक होत आहे…",
   "sync.offlineNote": "तुम्ही ऑफलाइन आहात. नोंदी या डिव्हाइसवर जतन झाल्या असून आपोआप सिंक होतील.",
+  "app.name": "Setu",
+  "login.demo": "डेमो: volunteer / volunteer123  ·  admin / admin123",
+  "common.none": "काहीही नाही",
+  "case.title": "केस",
+  "case.noVoice": "अजून कोणताही आवाज नमुना नाही",
+  "case.details": "तपशील",
+  "admin.matches": "जुळणी दुवे",
+  "admin.hours": "तास",
 };
 export default mr;

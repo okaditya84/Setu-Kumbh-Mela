@@ -58,7 +58,7 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
   const isAdmin = auth.role === "admin";
 
   const nav = [
-    { href: "/", label: t("nav.home"), icon: Home },
+    { href: "/dashboard", label: t("nav.home"), icon: Home },
     { href: "/intake?type=found", label: t("nav.intake"), icon: FilePlus2 },
     { href: "/map", label: t("nav.map"), icon: Map },
     { href: "/cases", label: t("nav.cases"), icon: ListChecks },
@@ -70,7 +70,7 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
       {/* Top bar */}
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
         <div className="mx-auto w-full max-w-6xl flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-2.5">
-          <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-saffron-600 text-white font-black">से</span>
             <span className="font-extrabold tracking-tight">{t("app.name")}</span>
           </Link>

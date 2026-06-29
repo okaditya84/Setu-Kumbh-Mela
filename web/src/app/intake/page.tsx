@@ -219,7 +219,7 @@ function IntakeInner() {
         <div className="card p-8 text-center mt-10 max-w-md mx-auto">
           <CheckCircle2 className="mx-auto h-16 w-16 text-green-500 mb-3" />
           <p className="text-xl font-bold">{t("match.reunitedOk")}</p>
-          <button className="btn-primary mt-6" onClick={() => router.push("/")}>
+          <button className="btn-primary mt-6" onClick={() => router.push("/dashboard")}>
             {t("nav.home")}
           </button>
         </div>
@@ -375,7 +375,7 @@ function IntakeInner() {
         <div className="card p-8 text-center mt-6 max-w-md mx-auto">
           <WifiOff className="mx-auto h-14 w-14 text-amber-500 mb-3" />
           <p className="font-bold text-lg">{t("sync.offlineNote")}</p>
-          <button className="btn-primary mt-6" onClick={() => router.push("/")}>{t("nav.home")}</button>
+          <button className="btn-primary mt-6" onClick={() => router.push("/dashboard")}>{t("nav.home")}</button>
         </div>
       )}
 
@@ -434,7 +434,7 @@ function IntakeInner() {
               {registering ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />} Register this report
             </button>
           </div>
-          <button className="btn-ghost w-full" onClick={() => router.push("/")}>
+          <button className="btn-ghost w-full" onClick={() => router.push("/dashboard")}>
             {t("common.cancel")}
           </button>
         </div>
@@ -448,7 +448,7 @@ function IntakeInner() {
           <p className="text-sm text-slate-500 mt-1">The report is now searchable at every center.</p>
           <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-center">
             <button className="btn-primary" onClick={() => router.push(`/case/${registeredId}`)}>Go to case</button>
-            <button className="btn-ghost" onClick={() => router.push("/")}>{t("nav.home")}</button>
+            <button className="btn-ghost" onClick={() => router.push("/dashboard")}>{t("nav.home")}</button>
           </div>
         </div>
       )}

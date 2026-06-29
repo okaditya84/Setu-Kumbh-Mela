@@ -7,16 +7,20 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from pydantic import BaseModel
+
 from app.api.deps import CurrentUser, require_admin
+from app.core import ratelimit
 from app.core.logging import metrics
+from app.core.security import hash_password
 from app.db.base import get_db
-from app.db.models import AuditEvent, Case, CaseStatus, CaseType, MatchLink, MatchStatus
+from app.db.models import AuditEvent, Case, CaseStatus, CaseType, MatchLink, MatchStatus, Operator, Role
 from app.geo import reference
-from app.services.case_service import run_purge_sweep
+from app.services.case_service import audit, run_purge_sweep
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -110,3 +114,108 @@ def purge(db: Session = Depends(get_db), user: CurrentUser = Depends(require_adm
     """Manually trigger the privacy PII-purge sweep (also runs on a schedule)."""
     n = run_purge_sweep(db)
     return {"purged": n}
+
+
+# ---------------------------- granular request trace -------------------------
+@router.get("/trace")
+def admin_trace(
+    user: CurrentUser = Depends(require_admin),
+    limit: int = Query(default=200, le=1000),
+    status_min: int = 0,
+    path: Optional[str] = None,
+):
+    """Live per-request trace: method, path, status, latency, client IP, actor."""
+    return {"requests": ratelimit.recent_traces(limit, status_min, path), "counters": ratelimit.counters()}
+
+
+# ---------------------------- dynamic rate limits ---------------------------
+class RateLimits(BaseModel):
+    auth: Optional[int] = None
+    write: Optional[int] = None
+    general: Optional[int] = None
+
+
+@router.get("/rate-limits")
+def get_rate_limits(user: CurrentUser = Depends(require_admin)):
+    from app.core.config import settings
+    return {"enabled": settings.RATE_LIMIT_ENABLED, "limits_rpm": ratelimit.LIMITS}
+
+
+@router.patch("/rate-limits")
+def set_rate_limits(payload: RateLimits, db: Session = Depends(get_db), user: CurrentUser = Depends(require_admin)):
+    updated = ratelimit.set_limits({k: v for k, v in payload.dict().items() if v is not None})
+    audit(db, "admin.rate_limits", actor=user.id, meta=updated)
+    db.commit()
+    return {"limits_rpm": updated}
+
+
+# ---------------------------- operator management ---------------------------
+class OperatorIn(BaseModel):
+    username: str
+    password: str
+    full_name: str = ""
+    role: str = Role.volunteer.value
+    center: str = ""
+
+
+class OperatorPatch(BaseModel):
+    full_name: Optional[str] = None
+    role: Optional[str] = None
+    center: Optional[str] = None
+    password: Optional[str] = None
+
+
+@router.get("/operators")
+def list_operators(db: Session = Depends(get_db), user: CurrentUser = Depends(require_admin)):
+    rows = db.execute(select(Operator).order_by(Operator.created_at.desc())).scalars().all()
+    return {"operators": [
+        {"id": o.id, "username": o.username, "full_name": o.full_name, "role": o.role,
+         "center": o.center, "created_at": o.created_at} for o in rows
+    ]}
+
+
+@router.post("/operators", status_code=201)
+def create_operator(payload: OperatorIn, db: Session = Depends(get_db), user: CurrentUser = Depends(require_admin)):
+    if db.execute(select(Operator).where(Operator.username == payload.username.lower())).scalar_one_or_none():
+        raise HTTPException(409, "Username already exists")
+    op = Operator(username=payload.username.lower(), full_name=payload.full_name,
+                  password_hash=hash_password(payload.password),
+                  role=payload.role if payload.role in {r.value for r in Role} else Role.volunteer.value,
+                  center=payload.center)
+    db.add(op)
+    audit(db, "admin.operator.create", actor=user.id, entity_type="operator", entity_id=op.id,
+          meta={"username": op.username, "role": op.role, "center": op.center})
+    db.commit()
+    return {"id": op.id, "username": op.username}
+
+
+@router.patch("/operators/{op_id}")
+def update_operator(op_id: str, payload: OperatorPatch, db: Session = Depends(get_db),
+                    user: CurrentUser = Depends(require_admin)):
+    op = db.get(Operator, op_id)
+    if not op:
+        raise HTTPException(404, "Operator not found")
+    if payload.full_name is not None:
+        op.full_name = payload.full_name
+    if payload.center is not None:
+        op.center = payload.center
+    if payload.role and payload.role in {r.value for r in Role}:
+        op.role = payload.role
+    if payload.password:
+        op.password_hash = hash_password(payload.password)
+    audit(db, "admin.operator.update", actor=user.id, entity_type="operator", entity_id=op.id)
+    db.commit()
+    return {"id": op.id, "username": op.username, "role": op.role, "center": op.center}
+
+
+@router.delete("/operators/{op_id}")
+def delete_operator(op_id: str, db: Session = Depends(get_db), user: CurrentUser = Depends(require_admin)):
+    op = db.get(Operator, op_id)
+    if not op:
+        raise HTTPException(404, "Operator not found")
+    if op.id == user.id:
+        raise HTTPException(400, "You cannot delete your own account")
+    db.delete(op)
+    audit(db, "admin.operator.delete", actor=user.id, entity_type="operator", entity_id=op_id)
+    db.commit()
+    return {"ok": True}

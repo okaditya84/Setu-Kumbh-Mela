@@ -30,6 +30,15 @@ class Settings(BaseSettings):
     # CORS: comma-separated origins, or "*" for any (dev only).
     CORS_ORIGINS: str = "*"
 
+    # ----------------------------- Rate limiting --------------------------
+    # Per-client-IP token bucket. Tunable at runtime by an admin via
+    # PATCH /admin/rate-limits (held in memory; env sets the defaults).
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_RPM: int = 240          # general requests/min/IP
+    RATE_LIMIT_AUTH_RPM: int = 15      # stricter for /auth/login (brute-force)
+    RATE_LIMIT_WRITE_RPM: int = 60     # stricter for POST/PATCH writes
+    TRACE_BUFFER_SIZE: int = 1000      # recent requests kept for the admin trace feed
+
     # ----------------------------- Database -------------------------------
     # SQLite by default (zero-config, perfect for the demo + offline edge box).
     # For production, set DATABASE_URL to a Postgres URL (Render/Supabase free tier).
@@ -121,6 +130,16 @@ class Settings(BaseSettings):
     TTS_MODEL: Optional[str] = None        # e.g. "bulbul:v2"
     TTS_SPEAKER: Optional[str] = None       # e.g. "anushka"
     TTS_BASE_URL: Optional[str] = None
+
+    # ----------------------------- Contact / SMTP (optional) --------------
+    # Powers the website Contact form. Leave blank to disable sending (messages
+    # are still logged to the audit feed). For Gmail use an App Password.
+    CONTACT_EMAIL: str = "hello@researchcommons.ai"
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM: Optional[str] = None
 
     # ----------------------------- Maps -----------------------------------
     # The web/mobile clients use OpenStreetMap (no key). A MapTiler/Stadia key
