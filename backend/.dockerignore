@@ -1,0 +1,11 @@
+.env
+.env.*
+.venv/
+__pycache__/
+*.pyc
+*.db
+*.sqlite3
+data/voice/
+data/i18n_cache/
+tests/
+.pytest_cache/

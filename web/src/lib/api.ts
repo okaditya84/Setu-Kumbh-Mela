@@ -54,6 +54,14 @@ export const api = {
   health: () => req<{ status: string }>("/health", {}, false),
   config: () => req<any>("/config", {}, false),
 
+  // Public contact form — no auth required.
+  contact: (name: string, email: string, message: string) =>
+    req<{ ok: boolean }>(
+      "/contact",
+      { method: "POST", body: JSON.stringify({ name, email, message }) },
+      false
+    ),
+
   createCase: (draft: CaseDraft) =>
     req<MatchResponse>("/cases", { method: "POST", body: JSON.stringify(draft) }),
 

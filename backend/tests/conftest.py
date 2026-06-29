@@ -8,6 +8,7 @@ os.environ["SEED_ON_STARTUP"] = "true"
 os.environ["SEED_SAMPLE_CASES"] = "false"
 os.environ["LLM_PROVIDER"] = "none"
 os.environ["VOICE_PROVIDER"] = "none"
+os.environ["RATE_LIMIT_ENABLED"] = "false"
 
 import pytest
 from fastapi.testclient import TestClient

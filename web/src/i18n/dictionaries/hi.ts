@@ -124,5 +124,13 @@ const hi: Partial<Dict> = {
   "sync.queued": "{n} रिपोर्ट सिंक होने की प्रतीक्षा में",
   "sync.syncing": "सिंक हो रहा है…",
   "sync.offlineNote": "आप ऑफ़लाइन हैं। रिपोर्टें इस डिवाइस पर सहेजी गई हैं और अपने आप सिंक हो जाएँगी।",
+  "app.name": "Setu",
+  "login.demo": "डेमो: volunteer / volunteer123  ·  admin / admin123",
+  "common.none": "कोई नहीं",
+  "case.title": "केस",
+  "case.noVoice": "अभी कोई आवाज़ नमूना नहीं",
+  "case.details": "विवरण",
+  "admin.matches": "मिलान लिंक",
+  "admin.hours": "घं",
 };
 export default hi;

@@ -1,82 +1,428 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Search, UserPlus, Map, Activity, ArrowRight } from "lucide-react";
-import { AppFrame } from "@/components/AppFrame";
-import { useI18n } from "@/i18n";
-import { api, getAuth } from "@/lib/api";
-import type { CaseOut } from "@/lib/types";
-import type { AuthInfo } from "@/lib/types";
-import { CaseBadges } from "@/components/CaseBadges";
+import { useEffect, useRef, useState } from "react";
+import {
+  Mic,
+  Network,
+  ShieldCheck,
+  Map as MapIcon,
+  WifiOff,
+  Languages,
+  ArrowRight,
+  Search,
+  UserPlus,
+  CheckCircle2,
+  Menu,
+  X,
+} from "lucide-react";
+import { getAuth } from "@/lib/api";
 
-export default function HomePage() {
-  const { t } = useI18n();
-  const [recent, setRecent] = useState<CaseOut[]>([]);
-  // Read auth only after mount so server and first client render match (no hydration mismatch).
-  const [auth, setAuthInfo] = useState<AuthInfo | null>(null);
+const CONTACT_EMAIL = "hello@researchcommons.ai";
 
-  useEffect(() => {
-    setAuthInfo(getAuth());
-    api.listCases({ limit: "8" }).then(setRecent).catch(() => {});
-  }, []);
+/* -------------------------------------------------------------------------- */
+/*  Demo media slot                                                            */
+/*  Tries to load /demo.mp4 (a screen recording the user drops in later).      */
+/*  If it is absent or fails, we render a tasteful animated mock of the app    */
+/*  flow so the hero never looks broken.                                       */
+/* -------------------------------------------------------------------------- */
+function DemoMedia() {
+  const [failed, setFailed] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   return (
-    <AppFrame>
-      <p className="text-slate-500">
-        {t("home.greeting")}{auth?.full_name ? `, ${auth.full_name}` : ""} 🙏
-      </p>
+    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-saffron-50 via-white to-teal-50 shadow-xl">
+      {!failed && (
+        <video
+          ref={videoRef}
+          className="absolute inset-0 h-full w-full object-cover"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/icon-512.png"
+          onError={() => setFailed(true)}
+        >
+          <source src="/demo.mp4" type="video/mp4" />
+        </video>
+      )}
+      {failed && <DemoMock />}
+    </div>
+  );
+}
 
-      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Link href="/intake?type=missing" className="card p-5 hover:shadow-md transition group">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-saffron-100 text-saffron-700 mb-3">
-            <Search className="h-6 w-6" />
-          </div>
-          <p className="font-bold text-lg">{t("home.reportMissing")}</p>
-          <p className="text-sm text-slate-500">{t("home.reportMissingSub")}</p>
-        </Link>
-        <Link href="/intake?type=found" className="card p-5 hover:shadow-md transition">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-teal-100 text-teal-700 mb-3">
-            <UserPlus className="h-6 w-6" />
-          </div>
-          <p className="font-bold text-lg">{t("home.reportFound")}</p>
-          <p className="text-sm text-slate-500">{t("home.reportFoundSub")}</p>
-        </Link>
-        <Link href="/map" className="card p-5 flex flex-row sm:flex-col items-center sm:items-start gap-3 hover:shadow-md transition">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-slate-100 text-slate-500 sm:mb-3">
-            <Map className="h-6 w-6" />
-          </div>
-          <span className="font-bold text-lg">{t("home.viewMap")}</span>
-        </Link>
-        {auth?.role === "admin" && (
-          <Link href="/admin" className="card p-5 flex flex-row sm:flex-col items-center sm:items-start gap-3 hover:shadow-md transition">
-            <div className="grid h-12 w-12 place-items-center rounded-xl bg-slate-100 text-slate-500 sm:mb-3">
-              <Activity className="h-6 w-6" />
+/* Pure CSS/SVG animated mock of the app flow: speak → match across centers →
+   reunited. Shown only when /demo.mp4 is not present. */
+function DemoMock() {
+  return (
+    <div className="absolute inset-0 grid place-items-center p-6">
+      <div className="flex w-full max-w-md flex-col items-center gap-4">
+        {/* phone frame */}
+        <div className="relative w-44 rounded-[2rem] border-[6px] border-slate-900 bg-white p-3 shadow-2xl">
+          <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-slate-200" />
+          <div className="space-y-2">
+            <div className="h-2 w-2/3 rounded bg-slate-200" />
+            <div className="grid place-items-center py-4">
+              <span className="relative grid h-16 w-16 place-items-center rounded-full bg-saffron-600 text-white">
+                <span className="absolute inset-0 rounded-full bg-saffron-400 animate-pulsering" />
+                <Mic className="h-7 w-7" />
+              </span>
             </div>
-            <span className="font-bold text-lg">{t("home.adminPanel")}</span>
+            <div className="h-2 w-full rounded bg-slate-100" />
+            <div className="h-2 w-5/6 rounded bg-slate-100" />
+            <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-teal-50 px-2 py-1.5">
+              <CheckCircle2 className="h-4 w-4 text-teal-600" />
+              <span className="h-2 w-2/3 rounded bg-teal-200" />
+            </div>
+          </div>
+        </div>
+        <p className="text-center text-sm font-medium text-slate-500">
+          Speak in any language → matched across every center → reunited
+        </p>
+      </div>
+    </div>
+  );
+}
+
+const FEATURES = [
+  {
+    icon: Mic,
+    title: "Voice-first intake",
+    body: "Report a missing or found person by just speaking — in any Indian language. AI fills the form for you.",
+    tone: "saffron",
+  },
+  {
+    icon: Network,
+    title: "Cross-center matching",
+    body: "One unified registry. A report at any camp is instantly searchable at every other center, automatically.",
+    tone: "teal",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Anti-impersonation verification",
+    body: "A private secret question protects each person — only true family can confirm a reunion before release.",
+    tone: "saffron",
+  },
+  {
+    icon: MapIcon,
+    title: "Live situational map",
+    body: "See open cases, risk hotspots, police posts and the nearest help, live across the whole mela.",
+    tone: "teal",
+  },
+  {
+    icon: WifiOff,
+    title: "Works offline",
+    body: "Built offline-first. Reports are saved on the device and sync automatically when the network returns.",
+    tone: "saffron",
+  },
+  {
+    icon: Languages,
+    title: "Multilingual by design",
+    body: "Full interface and voice support across 12 Indian languages — nobody is left out at the ghat.",
+    tone: "teal",
+  },
+] as const;
+
+const STEPS = [
+  {
+    icon: Mic,
+    title: "Report in seconds",
+    body: "A family member or volunteer taps and speaks. Setu understands the language and drafts the case.",
+  },
+  {
+    icon: Network,
+    title: "Match across centers",
+    body: "Setu searches every lost-and-found center at once and surfaces the strongest matches with reasons.",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Verify and reunite",
+    body: "Family answers the secret question, the match is confirmed, and both reports close automatically.",
+  },
+];
+
+function toneClasses(tone: "saffron" | "teal") {
+  return tone === "saffron"
+    ? "bg-saffron-100 text-saffron-700"
+    : "bg-teal-100 text-teal-700";
+}
+
+export default function LandingPage() {
+  const [authed, setAuthed] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setAuthed(!!getAuth());
+  }, []);
+
+  const appHref = authed ? "/dashboard" : "/login";
+
+  return (
+    <div className="min-h-full bg-white text-slate-900">
+      {/* ---------------------------------------------------------------- Nav */}
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/85 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-saffron-600 font-black text-white">
+              से
+            </span>
+            <span className="text-lg font-extrabold tracking-tight">Setu</span>
           </Link>
+
+          <nav className="hidden items-center gap-1 md:flex">
+            <a href="#features" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
+              Features
+            </a>
+            <a href="#how" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
+              How it works
+            </a>
+            <Link href="/contact" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
+              Contact
+            </Link>
+            <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
+              Sign in
+            </Link>
+            <Link href={appHref} className="btn-primary ml-1 px-4 py-2 text-sm">
+              Open the app <ArrowRight className="h-4 w-4" />
+            </Link>
+          </nav>
+
+          <button
+            className="rounded-lg p-2 hover:bg-slate-100 md:hidden"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Menu"
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+
+        {menuOpen && (
+          <div className="border-t border-slate-200 bg-white px-4 py-3 md:hidden">
+            <div className="flex flex-col gap-1">
+              <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                Features
+              </a>
+              <a href="#how" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                How it works
+              </a>
+              <Link href="/contact" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                Contact
+              </Link>
+              <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                Sign in
+              </Link>
+              <Link href={appHref} className="btn-primary mt-1 justify-center px-4 py-2 text-sm">
+                Open the app <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
         )}
-      </div>
+      </header>
 
-      <div className="mt-6 flex items-center justify-between">
-        <h2 className="font-bold">{t("home.recent")}</h2>
-        <Link href="/cases" className="text-sm text-saffron-700 inline-flex items-center gap-1">
-          {t("nav.cases")} <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
-        {recent.map((c) => (
-          <Link key={c.id} href={`/case/${c.id}`} className="card p-3 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="font-semibold truncate">{c.person_name || t("common.unknown")}</p>
-              <p className="text-xs text-slate-500">
-                {c.case_id} · {c.gender} · {c.age_band} · {c.last_seen_location}
-              </p>
+      {/* -------------------------------------------------------------- Hero */}
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -top-24 right-0 h-72 w-72 rounded-full bg-saffron-100 blur-3xl" />
+        <div className="pointer-events-none absolute top-40 -left-24 h-72 w-72 rounded-full bg-teal-100 blur-3xl" />
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-20">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-saffron-50 px-3 py-1 text-sm font-medium text-saffron-700 ring-1 ring-saffron-100">
+              <span className="h-2 w-2 rounded-full bg-saffron-500" />
+              Built for the Kumbh Mela
+            </span>
+            <h1 className="mt-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+              Reuniting families at the world&apos;s largest gathering.
+            </h1>
+            <p className="mt-4 max-w-xl text-lg text-slate-600">
+              Setu is one unified, offline-first, voice-first lost-and-found
+              registry for the Kumbh — so a missing child or elder reported at
+              any center is instantly found across all of them.
+            </p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link href={appHref} className="btn-primary px-6 py-3 text-base">
+                Open the app <ArrowRight className="h-5 w-5" />
+              </Link>
+              <a href="#how" className="btn-ghost px-6 py-3 text-base">
+                See how it works
+              </a>
             </div>
-            <CaseBadges caseType={c.case_type} status={c.status} t={t} />
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500">
+              <span className="inline-flex items-center gap-1.5"><Languages className="h-4 w-4 text-teal-600" /> 12 Indian languages</span>
+              <span className="inline-flex items-center gap-1.5"><WifiOff className="h-4 w-4 text-teal-600" /> Works offline</span>
+              <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-teal-600" /> Privacy by design</span>
+            </div>
+          </div>
+          <DemoMedia />
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------ Problem */}
+      <section className="border-y border-slate-200 bg-slate-50">
+        <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-12 sm:px-6 sm:grid-cols-3 lg:px-8">
+          <div>
+            <p className="text-3xl font-extrabold text-saffron-700">80M+</p>
+            <p className="mt-1 text-sm text-slate-600">pilgrims gather at a single Kumbh, across vast, crowded ghats.</p>
+          </div>
+          <div>
+            <p className="text-3xl font-extrabold text-saffron-700">Hundreds</p>
+            <p className="mt-1 text-sm text-slate-600">of people — often children and elders — are separated from family every day.</p>
+          </div>
+          <div>
+            <p className="text-3xl font-extrabold text-saffron-700">Siloed</p>
+            <p className="mt-1 text-sm text-slate-600">lost-and-found centers can&apos;t see each other&apos;s records, so searches stall.</p>
+          </div>
+        </div>
+        <div className="mx-auto w-full max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+          <p className="max-w-3xl text-lg text-slate-700">
+            <span className="font-semibold text-slate-900">The problem:</span> when
+            every camp keeps its own paper register, a family searching at one
+            booth never learns their elder was found at another. Language
+            barriers and patchy networks make it worse.
+          </p>
+          <p className="mt-3 max-w-3xl text-lg text-slate-700">
+            <span className="font-semibold text-slate-900">Setu&apos;s answer:</span> a
+            single shared registry that listens in any language, works without a
+            signal, and matches reports across every center automatically.
+          </p>
+        </div>
+      </section>
+
+      {/* ----------------------------------------------------------- Features */}
+      <section id="features" className="mx-auto w-full max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6 lg:px-8">
+        <div className="max-w-2xl">
+          <h2 className="text-3xl font-extrabold tracking-tight">Everything a reunion needs</h2>
+          <p className="mt-3 text-slate-600">
+            Designed with tired volunteers and anxious families in mind — fast,
+            forgiving, and usable by anyone.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="card p-6 transition hover:shadow-md">
+              <div className={`mb-4 grid h-12 w-12 place-items-center rounded-xl ${toneClasses(f.tone)}`}>
+                <f.icon className="h-6 w-6" />
+              </div>
+              <h3 className="text-lg font-bold">{f.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{f.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------------- Steps */}
+      <section id="how" className="scroll-mt-20 border-y border-slate-200 bg-slate-50">
+        <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-extrabold tracking-tight">How it works in 3 steps</h2>
+            <p className="mt-3 text-slate-600">From a worried report to a confirmed reunion.</p>
+          </div>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {STEPS.map((s, i) => (
+              <div key={s.title} className="relative card p-6">
+                <span className="absolute -top-3 -left-3 grid h-9 w-9 place-items-center rounded-full bg-saffron-600 text-sm font-bold text-white shadow">
+                  {i + 1}
+                </span>
+                <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-teal-100 text-teal-700">
+                  <s.icon className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-bold">{s.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* --------------------------------------------------------- Audience */}
+      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid gap-5 md:grid-cols-2">
+          <div className="card flex flex-col p-7">
+            <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-saffron-100 text-saffron-700">
+              <Search className="h-6 w-6" />
+            </div>
+            <h3 className="text-xl font-bold">Looking for someone?</h3>
+            <p className="mt-2 text-slate-600">
+              Families can report a missing relative in their own language and be
+              alerted the moment a match is found at any center. No forms to
+              learn — just speak.
+            </p>
+            <Link href={appHref} className="btn-primary mt-5 self-start px-5 py-2.5">
+              Report a missing person <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="card flex flex-col p-7">
+            <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-teal-100 text-teal-700">
+              <UserPlus className="h-6 w-6" />
+            </div>
+            <h3 className="text-xl font-bold">Found a lost person?</h3>
+            <p className="mt-2 text-slate-600">
+              Volunteers and staff register a found child or elder in seconds.
+              Setu instantly checks every open missing report across the mela.
+            </p>
+            <Link href={appHref} className="btn-teal mt-5 self-start px-5 py-2.5">
+              Register a found person <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ----------------------------------------------------------- CTA band */}
+      <section className="bg-saffron-600">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:px-8">
+          <div>
+            <h2 className="text-2xl font-extrabold text-white sm:text-3xl">Ready to help reunite families?</h2>
+            <p className="mt-2 max-w-xl text-saffron-50">
+              Open Setu on any phone or control-room screen. It works offline and
+              speaks every language at the ghat.
+            </p>
+          </div>
+          <Link href={appHref} className="btn inline-flex shrink-0 bg-white px-6 py-3 text-base text-saffron-700 hover:bg-saffron-50">
+            Open the app <ArrowRight className="h-5 w-5" />
           </Link>
-        ))}
-        {recent.length === 0 && <p className="text-sm text-slate-400 py-6 text-center">{t("common.loading")}</p>}
-      </div>
-    </AppFrame>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------- Footer */}
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <div className="flex items-center gap-2">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-saffron-600 font-black text-white">से</span>
+              <span className="font-extrabold">Setu</span>
+            </div>
+            <p className="mt-3 max-w-xs text-sm text-slate-500">
+              A unified, offline-first lost-and-found network for the Kumbh Mela.
+            </p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Product</p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-500">
+              <li><a href="#features" className="hover:text-saffron-700">Features</a></li>
+              <li><a href="#how" className="hover:text-saffron-700">How it works</a></li>
+              <li><Link href="/login" className="hover:text-saffron-700">Sign in</Link></li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Company</p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-500">
+              <li><Link href="/contact" className="hover:text-saffron-700">Contact</Link></li>
+              <li><Link href="/terms" className="hover:text-saffron-700">Terms</Link></li>
+              <li><Link href="/privacy" className="hover:text-saffron-700">Privacy</Link></li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Get in touch</p>
+            <a href={`mailto:${CONTACT_EMAIL}`} className="mt-3 inline-block text-sm text-saffron-700 hover:underline">
+              {CONTACT_EMAIL}
+            </a>
+          </div>
+        </div>
+        <div className="border-t border-slate-100">
+          <div className="mx-auto w-full max-w-6xl px-4 py-5 text-xs text-slate-400 sm:px-6 lg:px-8">
+            © {new Date().getFullYear()} Setu. Built to reunite families at the Kumbh.
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

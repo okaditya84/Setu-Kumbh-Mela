@@ -4,8 +4,8 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci || npm install
 COPY . .
-# Baked into the client bundle at build time.
-ARG NEXT_PUBLIC_API_BASE=http://localhost:8000
+# Baked into the client bundle at build time (the live Cloud Run backend).
+ARG NEXT_PUBLIC_API_BASE=https://setu-backend-504310368574.asia-south1.run.app
 ENV NEXT_PUBLIC_API_BASE=$NEXT_PUBLIC_API_BASE
 RUN npm run build
 

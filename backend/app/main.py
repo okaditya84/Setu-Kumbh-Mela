@@ -34,9 +34,34 @@ app.add_middleware(
 )
 
 
+def _actor_from(request: Request) -> str | None:
+    """Best-effort username for tracing (decode the bearer token if present)."""
+    from app.core.security import decode_access_token
+    auth = request.headers.get("authorization")
+    if auth and auth.lower().startswith("bearer "):
+        payload = decode_access_token(auth.split(" ", 1)[1].strip())
+        if payload:
+            return payload.get("username") or payload.get("sub")
+    return None
+
+
 @app.middleware("http")
 async def observe(request: Request, call_next):
+    from app.core import ratelimit
     req_id = uuid.uuid4().hex[:8]
+    method, path = request.method, request.url.path
+    ip = ratelimit.client_ip(request.headers, request.client.host if request.client else "")
+    cat = ratelimit.category(method, path)
+    actor = _actor_from(request)
+
+    # --- dynamic per-IP rate limiting ---
+    retry = ratelimit.check(ip, cat)
+    if retry is not None:
+        ratelimit.record_trace(method, path, 429, 0.0, ip, actor)
+        logger.warning(f"rate-limited {ip} {method} {path}")
+        return JSONResponse(status_code=429, content={"detail": "Too many requests. Slow down."},
+                            headers={"Retry-After": str(retry)})
+
     start = time.time()
     with logger.contextualize(req_id=req_id):
         try:
@@ -44,23 +69,27 @@ async def observe(request: Request, call_next):
         except Exception as e:  # safety net -> structured 500
             logger.exception(f"Unhandled error: {e}")
             metrics.incr("http.errors")
+            elapsed = (time.time() - start) * 1000
+            ratelimit.record_trace(method, path, 500, elapsed, ip, actor)
             return JSONResponse(status_code=500, content={"detail": "Internal server error"})
         elapsed = (time.time() - start) * 1000
         metrics.incr("http.requests")
-        metrics.observe(f"http {request.method} {request.url.path}", elapsed)
-        logger.info(f"{request.method} {request.url.path} -> {response.status_code} ({elapsed:.0f}ms)")
+        metrics.observe(f"http {method} {path}", elapsed)
+        ratelimit.record_trace(method, path, response.status_code, elapsed, ip, actor)
+        logger.info(f"{method} {path} -> {response.status_code} ({elapsed:.0f}ms) ip={ip}")
         response.headers["X-Request-ID"] = req_id
         return response
 
 
 # ------------------------------ routers -------------------------------------
 from app.api.routers import (  # noqa: E402
-    admin, auth, cases, geo, i18n, intake, match, meta, notifications, sync, voice,
+    admin, auth, cases, contact, geo, i18n, intake, match, meta, notifications, sync, voice,
 )
 
 P = settings.API_PREFIX
 app.include_router(meta.router, prefix=P)
 app.include_router(i18n.router, prefix=P)
+app.include_router(contact.router, prefix=P)
 app.include_router(auth.router, prefix=P)
 app.include_router(cases.router, prefix=P)
 app.include_router(match.router, prefix=P)
