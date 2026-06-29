@@ -176,7 +176,7 @@ class Settings(BaseSettings):
     MATCH_DISPLAY_FLOOR: float = 0.45
     # A cross-center match at/above this probability raises notifications to BOTH
     # the missing and found reporting centers.
-    NOTIFY_THRESHOLD: float = 0.72
+    NOTIFY_THRESHOLD: float = 0.50
     # If more than this many candidates cluster above the review threshold with
     # little score separation, the engine asks disambiguating questions instead
     # of dumping a long list.
