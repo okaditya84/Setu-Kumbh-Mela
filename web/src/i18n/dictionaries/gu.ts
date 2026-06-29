@@ -16,7 +16,6 @@ const gu: Partial<Dict> = {
   "login.password": "પાસવર્ડ",
   "login.submit": "સાઇન ઇન",
   "login.error": "વપરાશકર્તા નામ અથવા પાસવર્ડ ખોટો છે",
-  "login.demo": "ડેમો: volunteer / volunteer123  ·  admin / admin123",
   "common.missing": "ખોવાયેલ",
   "common.found": "મળેલ",
   "common.male": "પુરુષ",

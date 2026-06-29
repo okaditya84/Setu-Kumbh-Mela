@@ -57,6 +57,7 @@ class CaseStatus(str, enum.Enum):
 
 
 class Role(str, enum.Enum):
+    public = "public"        # an ordinary person who self-registered (family member)
     volunteer = "volunteer"
     admin = "admin"
 

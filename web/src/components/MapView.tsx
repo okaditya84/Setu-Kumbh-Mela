@@ -127,7 +127,7 @@ export default function MapView() {
     <>
       <h1 className="text-xl font-extrabold mb-3">{t("map.title")}</h1>
       <div className="card overflow-hidden">
-        <div ref={ref} className="h-[60vh] lg:h-[72vh] w-full bg-slate-100" />
+        <div ref={ref} className="h-[60vh] lg:h-[72vh] w-full bg-slate-100 dark:bg-slate-800" />
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         {legend.map((l) => (
@@ -135,7 +135,7 @@ export default function MapView() {
             key={l.k}
             onClick={() => toggle(l.k)}
             disabled={!ready}
-            className={`chip border ${shown[l.k] ? "bg-white border-slate-300" : "bg-slate-100 border-transparent opacity-50"}`}
+            className={`chip border ${shown[l.k] ? "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700" : "bg-slate-100 dark:bg-slate-800 border-transparent opacity-50"}`}
           >
             <span className="h-3 w-3 rounded-full" style={{ background: l.color }} />
             {l.label}

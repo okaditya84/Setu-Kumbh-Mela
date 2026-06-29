@@ -16,7 +16,6 @@ const bn: Partial<Dict> = {
   "login.password": "পাসওয়ার্ড",
   "login.submit": "সাইন ইন",
   "login.error": "ভুল ব্যবহারকারীর নাম বা পাসওয়ার্ড",
-  "login.demo": "ডেমো: volunteer / volunteer123  ·  admin / admin123",
   "common.missing": "নিখোঁজ",
   "common.found": "প্রাপ্ত",
   "common.male": "পুরুষ",

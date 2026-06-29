@@ -16,7 +16,6 @@ const ml: Partial<Dict> = {
   "login.password": "പാസ്‌വേഡ്",
   "login.submit": "സൈൻ ഇൻ",
   "login.error": "യൂസർനെയിം അല്ലെങ്കിൽ പാസ്‌വേഡ് തെറ്റാണ്",
-  "login.demo": "ഡെമോ: volunteer / volunteer123  ·  admin / admin123",
   "common.missing": "കാണാതായ",
   "common.found": "കണ്ടെത്തിയ",
   "common.male": "പുരുഷൻ",

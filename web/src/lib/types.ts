@@ -102,7 +102,7 @@ export interface NotificationOut {
 
 export interface AuthInfo {
   access_token: string;
-  role: "admin" | "volunteer";
+  role: "admin" | "volunteer" | "public";
   center: string;
   full_name: string;
 }

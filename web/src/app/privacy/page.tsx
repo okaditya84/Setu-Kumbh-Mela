@@ -12,17 +12,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="mt-8">
       <h2 className="text-xl font-bold tracking-tight">{title}</h2>
-      <div className="mt-2 space-y-3 text-slate-600">{children}</div>
+      <div className="mt-2 space-y-3 text-slate-600 dark:text-slate-400">{children}</div>
     </section>
   );
 }
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-full bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-full bg-slate-50 dark:bg-slate-950">
+      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-saffron-700">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-saffron-700">
             <ArrowLeft className="h-4 w-4" /> Back to home
           </Link>
           <Link href="/" className="flex items-center gap-2">
@@ -33,13 +33,13 @@ export default function PrivacyPage() {
       </header>
 
       <main className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6">
-        <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 ring-1 ring-teal-100">
+        <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 dark:bg-teal-950/40 px-3 py-1 text-sm font-medium text-teal-700 dark:text-teal-300 ring-1 ring-teal-100">
           <ShieldCheck className="h-4 w-4" /> Privacy by design
         </div>
         <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Privacy Policy</h1>
-        <p className="mt-2 text-sm text-slate-500">Last updated: 29 June 2026</p>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Last updated: 29 June 2026</p>
 
-        <p className="mt-6 text-slate-600">
+        <p className="mt-6 text-slate-600 dark:text-slate-400">
           Setu handles sensitive information about vulnerable people — children,
           elders and those who are lost. We collect the minimum needed to reunite
           them with their families, protect it carefully, and delete it as soon
@@ -48,10 +48,10 @@ export default function PrivacyPage() {
 
         <Section title="Our principles">
           <ul className="list-disc space-y-1 pl-5">
-            <li><span className="font-medium text-slate-800">Minimal data.</span> We only collect what helps make a match.</li>
-            <li><span className="font-medium text-slate-800">Masked &amp; hashed PII.</span> Direct identifiers such as contact numbers and verification answers are masked or hashed, not stored in the clear.</li>
-            <li><span className="font-medium text-slate-800">No biometric storage by default.</span> We do not run or store facial-recognition templates by default; photos, where used, are for human eyes only.</li>
-            <li><span className="font-medium text-slate-800">Auto-purge.</span> Case data is automatically purged after reunification or after a short retention window.</li>
+            <li><span className="font-medium text-slate-800 dark:text-slate-200">Minimal data.</span> We only collect what helps make a match.</li>
+            <li><span className="font-medium text-slate-800 dark:text-slate-200">Masked &amp; hashed PII.</span> Direct identifiers such as contact numbers and verification answers are masked or hashed, not stored in the clear.</li>
+            <li><span className="font-medium text-slate-800 dark:text-slate-200">No biometric storage by default.</span> We do not run or store facial-recognition templates by default; photos, where used, are for human eyes only.</li>
+            <li><span className="font-medium text-slate-800 dark:text-slate-200">Auto-purge.</span> Case data is automatically purged after reunification or after a short retention window.</li>
           </ul>
         </Section>
 
@@ -115,9 +115,9 @@ export default function PrivacyPage() {
           <p>
             You can ask us to access, correct or delete personal data relating to
             a case. Email{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-saffron-700 hover:underline">{CONTACT_EMAIL}</a>{" "}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-saffron-700 dark:text-saffron-300 hover:underline">{CONTACT_EMAIL}</a>{" "}
             with the case ID where possible, or use our{" "}
-            <Link href="/contact" className="font-medium text-saffron-700 hover:underline">contact form</Link>.
+            <Link href="/contact" className="font-medium text-saffron-700 dark:text-saffron-300 hover:underline">contact form</Link>.
             Because data may be purged automatically after reunification, some
             records may no longer exist by the time of a request.
           </p>

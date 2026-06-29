@@ -217,7 +217,7 @@ export default function CaseDetailPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={c.photo_url} alt="" className="h-16 w-16 rounded-xl object-cover border" />
           ) : (
-            <div className="grid h-16 w-16 place-items-center rounded-xl bg-slate-100 text-2xl font-bold text-slate-400">
+            <div className="grid h-16 w-16 place-items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-2xl font-bold text-slate-400 dark:text-slate-500">
               {(c.person_name || "?")[0]}
             </div>
           )}
@@ -229,12 +229,12 @@ export default function CaseDetailPage() {
               </div>
               <StatusBadge status={c.status} t={t} className="shrink-0 mt-0.5" />
             </div>
-            <p className="text-sm text-slate-500">{c.case_id} · {c.gender} · {c.age_band}</p>
-            <p className="text-sm text-slate-500">{c.language} · {c.state} · {c.last_seen_location}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{c.case_id} · {c.gender} · {c.age_band}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{c.language} · {c.state} · {c.last_seen_location}</p>
           </div>
         </div>
-        {c.physical_description && <p className="mt-3 text-sm bg-slate-50 rounded-lg p-2.5">{c.physical_description}</p>}
-        {c.reporter_mobile_masked && <p className="mt-2 text-xs text-slate-400">📞 {c.reporter_mobile_masked}</p>}
+        {c.physical_description && <p className="mt-3 text-sm bg-slate-50 dark:bg-slate-800 rounded-lg p-2.5">{c.physical_description}</p>}
+        {c.reporter_mobile_masked && <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">📞 {c.reporter_mobile_masked}</p>}
       </div>
 
       {/* actions */}
@@ -263,8 +263,8 @@ export default function CaseDetailPage() {
       </div>
 
       {announce && (
-        <div className="card p-4 mb-3 bg-saffron-50 border-saffron-200">
-          <p className="text-sm font-semibold text-saffron-800 mb-1">{t("case.announcement")}</p>
+        <div className="card p-4 mb-3 bg-saffron-50 dark:bg-saffron-950/40 border-saffron-200 dark:border-saffron-900">
+          <p className="text-sm font-semibold text-saffron-800 dark:text-saffron-300 mb-1">{t("case.announcement")}</p>
           <p className="text-sm">{announce.text}</p>
           <button onClick={() => speak(announce.text)} disabled={announcePlaying} className="btn-primary mt-2 py-2 text-sm">
             {announcePlaying ? <Spinner className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />} {t("case.playAnnouncement")}
@@ -281,7 +281,7 @@ export default function CaseDetailPage() {
               <button onClick={() => playVoice(v.id)} disabled={playingId === v.id} className="btn-ghost py-1.5 px-3 text-sm">
                 {playingId === v.id ? <Spinner className="h-4 w-4" /> : <Play className="h-4 w-4" />} {v.kind}
               </button>
-              {v.transcript && <span className="text-xs text-slate-500 italic">“{v.transcript}”</span>}
+              {v.transcript && <span className="text-xs text-slate-500 dark:text-slate-400 italic">“{v.transcript}”</span>}
             </div>
           ))}
         </div>
@@ -291,7 +291,7 @@ export default function CaseDetailPage() {
       {/* Right column: matches */}
       <div>
       <h2 className="font-bold">{t("match.title")}</h2>
-      <p className="text-sm text-slate-500 mb-2">
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
         Other reports that may be the SAME person, from any center — confirm to reunite.
       </p>
       {busy && <div className="mb-2"><Spinner className="h-5 w-5 text-saffron-600" /></div>}
@@ -302,10 +302,10 @@ export default function CaseDetailPage() {
           ))
         ) : (
           <div className="card p-8 text-center">
-            <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-green-100 text-green-600">
+            <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-green-100 dark:bg-green-950/40 text-green-600 dark:text-green-300">
               <CheckCircle2 className="h-7 w-7" />
             </div>
-            <p className="font-semibold text-slate-700">{t("match.noMatches")}</p>
+            <p className="font-semibold text-slate-700 dark:text-slate-200">{t("match.noMatches")}</p>
           </div>
         )}
       </div>
@@ -313,12 +313,12 @@ export default function CaseDetailPage() {
       </div>
 
       <Modal open={verifyOpen} onClose={() => { setVerifyOpen(false); setVerifyResult(null); }} title={t("case.verify")}>
-        <p className="text-sm text-slate-600 mb-2">{t("case.verifyPrompt")}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{t("case.verifyPrompt")}</p>
         {c.secret_question && <p className="text-sm font-medium mb-2">❝ {c.secret_question} ❞</p>}
         <input className="input mb-3" value={answer} onChange={(e) => setAnswer(e.target.value)} />
         <button className="btn-primary w-full" onClick={doVerify}>{t("common.confirm")}</button>
         {verifyResult && (
-          <p className={`mt-3 text-sm font-medium ${verifyResult.verified ? "text-green-600" : "text-red-600"}`}>
+          <p className={`mt-3 text-sm font-medium ${verifyResult.verified ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
             {verifyResult.message}
           </p>
         )}

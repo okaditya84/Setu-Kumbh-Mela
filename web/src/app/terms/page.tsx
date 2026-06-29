@@ -12,17 +12,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="mt-8">
       <h2 className="text-xl font-bold tracking-tight">{title}</h2>
-      <div className="mt-2 space-y-3 text-slate-600">{children}</div>
+      <div className="mt-2 space-y-3 text-slate-600 dark:text-slate-400">{children}</div>
     </section>
   );
 }
 
 export default function TermsPage() {
   return (
-    <div className="min-h-full bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-full bg-slate-50 dark:bg-slate-950">
+      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-saffron-700">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-saffron-700">
             <ArrowLeft className="h-4 w-4" /> Back to home
           </Link>
           <Link href="/" className="flex items-center gap-2">
@@ -34,9 +34,9 @@ export default function TermsPage() {
 
       <main className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6">
         <h1 className="text-3xl font-extrabold tracking-tight">Terms of Use</h1>
-        <p className="mt-2 text-sm text-slate-500">Last updated: 29 June 2026</p>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Last updated: 29 June 2026</p>
 
-        <p className="mt-6 text-slate-600">
+        <p className="mt-6 text-slate-600 dark:text-slate-400">
           These terms govern your use of Setu, a lost-and-found coordination
           service for large public gatherings such as the Kumbh Mela. By using
           Setu, you agree to these terms. Setu is provided to help reunite
@@ -97,7 +97,7 @@ export default function TermsPage() {
           <p>
             Setu is built privacy-first. Our handling of personal information is
             described in our{" "}
-            <Link href="/privacy" className="font-medium text-saffron-700 hover:underline">Privacy Policy</Link>,
+            <Link href="/privacy" className="font-medium text-saffron-700 dark:text-saffron-300 hover:underline">Privacy Policy</Link>,
             which forms part of these terms.
           </p>
         </Section>
@@ -121,9 +121,9 @@ export default function TermsPage() {
         <Section title="9. Contact">
           <p>
             Questions about these terms? Email{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-saffron-700 hover:underline">{CONTACT_EMAIL}</a>{" "}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-saffron-700 dark:text-saffron-300 hover:underline">{CONTACT_EMAIL}</a>{" "}
             or use our{" "}
-            <Link href="/contact" className="font-medium text-saffron-700 hover:underline">contact form</Link>.
+            <Link href="/contact" className="font-medium text-saffron-700 dark:text-saffron-300 hover:underline">contact form</Link>.
           </p>
         </Section>
       </main>

@@ -7,6 +7,7 @@ import { useOnline, usePending, useAuthGuard } from "@/lib/hooks";
 import { setAuth } from "@/lib/api";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { NotificationsBell } from "./NotificationsBell";
+import { ThemeToggle } from "./ThemeToggle";
 import { Spinner } from "./ui";
 
 function NavItem({ href, label, icon: Icon, active }: any) {
@@ -14,10 +15,10 @@ function NavItem({ href, label, icon: Icon, active }: any) {
     <Link
       href={href}
       className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[11px] font-medium ${
-        active ? "text-saffron-700" : "text-slate-500"
+        active ? "text-saffron-700 dark:text-saffron-400" : "text-slate-500 dark:text-slate-400"
       }`}
     >
-      <Icon className={`h-6 w-6 ${active ? "text-saffron-600" : "text-slate-400"}`} />
+      <Icon className={`h-6 w-6 ${active ? "text-saffron-600 dark:text-saffron-400" : "text-slate-400 dark:text-slate-500"}`} />
       {label}
     </Link>
   );
@@ -29,10 +30,12 @@ function TopNavLink({ href, label, icon: Icon, active }: any) {
     <Link
       href={href}
       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-        active ? "bg-saffron-50 text-saffron-700" : "text-slate-500 hover:bg-slate-100"
+        active
+          ? "bg-saffron-50 text-saffron-700 dark:bg-saffron-950/40 dark:text-saffron-400"
+          : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
       }`}
     >
-      <Icon className={`h-4 w-4 ${active ? "text-saffron-600" : "text-slate-400"}`} />
+      <Icon className={`h-4 w-4 ${active ? "text-saffron-600 dark:text-saffron-400" : "text-slate-400 dark:text-slate-500"}`} />
       {label}
     </Link>
   );
@@ -68,7 +71,7 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
   return (
     <div className="min-h-full flex flex-col pb-20 lg:pb-6">
       {/* Top bar */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
+      <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
         <div className="mx-auto w-full max-w-6xl flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-2.5">
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-saffron-600 text-white font-black">से</span>
@@ -82,13 +85,14 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
           </nav>
           <div className="flex items-center gap-1 shrink-0">
             <NotificationsBell />
+            <ThemeToggle />
             <LanguageSwitcher />
             <button
               onClick={() => {
                 setAuth(null);
                 location.href = "/login";
               }}
-              className="p-2 rounded-lg hover:bg-slate-100"
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
               aria-label={t("nav.logout")}
             >
               <LogOut className="h-4 w-4" />
@@ -97,7 +101,7 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
         </div>
         {/* Status strip */}
         {(!online || pending > 0) && (
-          <div className={`text-center text-xs py-1 ${online ? "bg-amber-50 text-amber-700" : "bg-slate-800 text-white"}`}>
+          <div className={`text-center text-xs py-1 ${online ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" : "bg-slate-800 text-white"}`}>
             {!online ? (
               <span className="inline-flex items-center gap-1.5">
                 <WifiOff className="h-3.5 w-3.5" /> {t("common.offline")} — {t("sync.offlineNote")}
@@ -114,7 +118,7 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 lg:px-8 py-4 lg:py-6">{children}</main>
 
       {/* Bottom nav (thumb reach) — small/medium screens only */}
-      <nav className="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 lg:hidden">
+      <nav className="fixed bottom-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 lg:hidden">
         <div className="mx-auto max-w-3xl flex items-center justify-around py-1">
           {nav.map((n) => (
             <NavItem key={n.href} {...n} active={pathname === n.href.split("?")[0]} />

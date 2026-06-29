@@ -16,7 +16,6 @@ const ur: Partial<Dict> = {
   "login.password": "پاس ورڈ",
   "login.submit": "سائن ان",
   "login.error": "غلط صارف نام یا پاس ورڈ",
-  "login.demo": "ڈیمو: volunteer / volunteer123  ·  admin / admin123",
   "common.missing": "گمشدہ",
   "common.found": "ملا",
   "common.male": "مرد",

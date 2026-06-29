@@ -248,7 +248,7 @@ function IntakeInner() {
                 stopSignal={stopSignal}
               />
               {parsing && (
-                <p className="mt-3 text-center text-sm text-saffron-700 inline-flex items-center gap-1 w-full justify-center">
+                <p className="mt-3 text-center text-sm text-saffron-700 dark:text-saffron-300 inline-flex items-center gap-1 w-full justify-center">
                   <Sparkles className="h-4 w-4 animate-pulse" /> {t("intake.draftReady")}
                 </p>
               )}
@@ -260,7 +260,7 @@ function IntakeInner() {
           {/* Manual / prefilled form */}
           <button
             onClick={() => setShowManual((s) => !s)}
-            className="w-full flex items-center justify-between text-sm font-medium text-slate-500 py-2"
+            className="w-full flex items-center justify-between text-sm font-medium text-slate-500 dark:text-slate-400 py-2"
           >
             {t("intake.orFillManually")}
             <ChevronDown className={`h-4 w-4 transition ${showManual ? "rotate-180" : ""}`} />
@@ -280,7 +280,7 @@ function IntakeInner() {
                       type="button"
                       onClick={() => set("gender", g)}
                       className={`flex-1 rounded-xl border py-2.5 font-medium ${
-                        draft.gender === g ? "border-saffron-500 bg-saffron-50 text-saffron-700" : "border-slate-200"
+                        draft.gender === g ? "border-saffron-500 bg-saffron-50 dark:bg-saffron-950/40 text-saffron-700 dark:text-saffron-300" : "border-slate-200 dark:border-slate-800"
                       }`}
                     >
                       {g === "Male" ? t("common.male") : g === "Female" ? t("common.female") : t("common.unknown")}
@@ -297,7 +297,7 @@ function IntakeInner() {
                       type="button"
                       onClick={() => set("age_band", a)}
                       className={`rounded-xl border py-2 text-sm font-medium ${
-                        draft.age_band === a ? "border-saffron-500 bg-saffron-50 text-saffron-700" : "border-slate-200"
+                        draft.age_band === a ? "border-saffron-500 bg-saffron-50 dark:bg-saffron-950/40 text-saffron-700 dark:text-saffron-300" : "border-slate-200 dark:border-slate-800"
                       }`}
                     >
                       {a}
@@ -343,11 +343,11 @@ function IntakeInner() {
               </Field>
 
               {caseType === "found" && (
-                <div className="rounded-xl bg-teal-50 border border-teal-100 p-3 space-y-3">
-                  <p className="text-sm font-medium text-teal-800">{t("intake.secretQ")}</p>
+                <div className="rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-100 p-3 space-y-3">
+                  <p className="text-sm font-medium text-teal-800 dark:text-teal-300">{t("intake.secretQ")}</p>
                   <input className="input" placeholder={t("intake.secretQ")} value={draft.secret_question || ""} onChange={(e) => set("secret_question", e.target.value)} />
                   <input className="input" placeholder={t("intake.secretA")} value={draft.secret_answer || ""} onChange={(e) => set("secret_answer", e.target.value)} />
-                  <p className="text-xs text-teal-700">{t("intake.secretHint")}</p>
+                  <p className="text-xs text-teal-700 dark:text-teal-300">{t("intake.secretHint")}</p>
                 </div>
               )}
             </div>
@@ -361,7 +361,7 @@ function IntakeInner() {
             <Send className="h-5 w-5" /> {t("intake.submit")}
           </button>
           {!hasSignal && (
-            <p className="mt-2 text-center text-xs text-slate-400">
+            <p className="mt-2 text-center text-xs text-slate-400 dark:text-slate-500">
               Add details by voice, a photo, or fill the form to search.
             </p>
           )}
@@ -387,21 +387,21 @@ function IntakeInner() {
           {/* (b) Possible matches */}
           <div className="flex items-center justify-between pt-1">
             <h2 className="font-bold">{t("match.title")}</h2>
-            <span className="text-xs text-slate-400">{matches.total_considered} {t("match.considered")}</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">{matches.total_considered} {t("match.considered")}</span>
           </div>
-          <p className="text-sm text-slate-500 -mt-2">
+          <p className="text-sm text-slate-500 dark:text-slate-400 -mt-2">
             Other reports that may be the SAME person, from any center — confirm to reunite.
           </p>
 
           {matches.needs_disambiguation && matches.disambiguation_questions.length > 0 && (
-            <div className="card p-4 bg-amber-50 border-amber-200">
-              <p className="text-sm font-semibold text-amber-800 mb-2">{t("match.disambiguation")}</p>
+            <div className="card p-4 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900">
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-2">{t("match.disambiguation")}</p>
               {matches.disambiguation_questions.map((q, i) => (
                 <div key={i} className="mb-2">
                   <p className="text-sm font-medium">{q.question}</p>
                   <div className="flex flex-wrap gap-1.5 mt-1">
                     {q.options.map((o) => (
-                      <button key={o} onClick={() => refine(q.field, o)} className="chip bg-amber-100 text-amber-800 hover:bg-amber-200">
+                      <button key={o} onClick={() => refine(q.field, o)} className="chip bg-amber-100 text-amber-800 dark:text-amber-300 hover:bg-amber-200">
                         {o}
                       </button>
                     ))}
@@ -413,11 +413,11 @@ function IntakeInner() {
 
           {matches.candidates.length === 0 ? (
             <div className="card p-8 text-center">
-              <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-slate-100 text-slate-500">
+              <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                 <Search className="h-7 w-7" />
               </div>
-              <p className="font-semibold text-slate-700">No matches yet.</p>
-              <p className="text-sm text-slate-500 mt-1">Register the report so it becomes searchable at every center.</p>
+              <p className="font-semibold text-slate-700 dark:text-slate-200">No matches yet.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Register the report so it becomes searchable at every center.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
@@ -428,8 +428,8 @@ function IntakeInner() {
           )}
 
           {/* (c) Explicit register action — the ONLY way to persist */}
-          <div className="card p-4 bg-saffron-50 border-saffron-200 sticky bottom-24 lg:static lg:bottom-auto">
-            <p className="text-sm text-slate-600 mb-2">Nothing is saved yet. Review the details above, then register.</p>
+          <div className="card p-4 bg-saffron-50 dark:bg-saffron-950/40 border-saffron-200 dark:border-saffron-900 sticky bottom-24 lg:static lg:bottom-auto">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Nothing is saved yet. Review the details above, then register.</p>
             <button onClick={register} disabled={registering} className="btn-primary w-full py-4 text-lg">
               {registering ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />} Register this report
             </button>
@@ -445,7 +445,7 @@ function IntakeInner() {
         <div className="card p-8 text-center mt-6 max-w-md mx-auto">
           <CheckCircle2 className="mx-auto h-16 w-16 text-green-500 mb-3" />
           <p className="text-xl font-bold">Registered</p>
-          <p className="text-sm text-slate-500 mt-1">The report is now searchable at every center.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">The report is now searchable at every center.</p>
           <div className="mt-6 flex flex-col sm:flex-row gap-2 justify-center">
             <button className="btn-primary" onClick={() => router.push(`/case/${registeredId}`)}>Go to case</button>
             <button className="btn-ghost" onClick={() => router.push("/dashboard")}>{t("nav.home")}</button>
@@ -479,8 +479,8 @@ function SummaryCard({
   ].filter((r) => r.value);
 
   return (
-    <div className={`card p-4 ${caseType === "missing" ? "bg-saffron-50 border-saffron-200" : "bg-teal-50 border-teal-200"}`}>
-      <p className={`text-sm font-semibold mb-3 ${caseType === "missing" ? "text-saffron-800" : "text-teal-800"}`}>
+    <div className={`card p-4 ${caseType === "missing" ? "bg-saffron-50 dark:bg-saffron-950/40 border-saffron-200 dark:border-saffron-900" : "bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-900"}`}>
+      <p className={`text-sm font-semibold mb-3 ${caseType === "missing" ? "text-saffron-800 dark:text-saffron-300" : "text-teal-800 dark:text-teal-300"}`}>
         {heading}
       </p>
       <div className="flex items-start gap-3">
@@ -488,7 +488,7 @@ function SummaryCard({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photo} alt="" className="h-16 w-16 rounded-xl object-cover border" />
         ) : (
-          <div className="grid h-16 w-16 place-items-center rounded-xl bg-white/70 text-2xl font-bold text-slate-400">
+          <div className="grid h-16 w-16 place-items-center rounded-xl bg-white/70 dark:bg-slate-800/70 text-2xl font-bold text-slate-400 dark:text-slate-500">
             {(draft.person_name || "?")[0]}
           </div>
         )}
@@ -498,8 +498,8 @@ function SummaryCard({
             <dl className="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5 text-sm">
               {rows.map((r) => (
                 <div key={r.label} className="flex gap-1 min-w-0">
-                  <dt className="text-slate-400 shrink-0">{r.label}:</dt>
-                  <dd className="text-slate-700 truncate">{r.value}</dd>
+                  <dt className="text-slate-400 dark:text-slate-500 shrink-0">{r.label}:</dt>
+                  <dd className="text-slate-700 dark:text-slate-200 truncate">{r.value}</dd>
                 </div>
               ))}
             </dl>
@@ -507,7 +507,7 @@ function SummaryCard({
         </div>
       </div>
       {draft.physical_description && (
-        <p className="mt-3 text-sm bg-white/70 rounded-lg p-2.5 text-slate-700">{draft.physical_description}</p>
+        <p className="mt-3 text-sm bg-white/70 dark:bg-slate-800/70 rounded-lg p-2.5 text-slate-700 dark:text-slate-200">{draft.physical_description}</p>
       )}
     </div>
   );

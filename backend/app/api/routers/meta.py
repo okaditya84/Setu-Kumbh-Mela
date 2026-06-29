@@ -34,4 +34,9 @@ def client_config():
             "tts_enabled": __import__("app.voice.tts", fromlist=["available"]).available(),
             "face_matching_enabled": (settings.FACE_PROVIDER or "none").lower() == "http",
         },
+        "auth": {
+            "public_signup_enabled": settings.PUBLIC_SIGNUP_ENABLED,
+            # Public client id only (the secret never leaves the server).
+            "google_client_id": settings.GOOGLE_CLIENT_ID or None,
+        },
     }

@@ -6,14 +6,14 @@ import type { CaseStatus, CaseType } from "@/lib/types";
 function statusClasses(status: CaseStatus): string {
   switch (status) {
     case "Reunited":
-      return "bg-green-100 text-green-800 ring-green-200";
+      return "bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-300 ring-green-200 dark:ring-green-900";
     case "Transferred to hospital":
-      return "bg-amber-100 text-amber-800 ring-amber-200";
+      return "bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 ring-amber-200 dark:ring-amber-900";
     case "Unresolved":
-      return "bg-red-100 text-red-800 ring-red-200";
+      return "bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-300 ring-red-200 dark:ring-red-900";
     case "Pending":
     default:
-      return "bg-slate-100 text-slate-700 ring-slate-200";
+      return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 ring-slate-200 dark:ring-slate-800";
   }
 }
 
@@ -37,7 +37,7 @@ export function TypeTag({
 }) {
   const m = typeMeta(caseType, t);
   return (
-    <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400 ${className}`}>
       <span className={`h-3 w-1 rounded-full ${m.accent}`} />
       {m.label}
     </span>

@@ -16,7 +16,6 @@ const ta: Partial<Dict> = {
   "login.password": "கடவுச்சொல்",
   "login.submit": "உள்நுழைக",
   "login.error": "பயனர்பெயர் அல்லது கடவுச்சொல் தவறானது",
-  "login.demo": "டெமோ: volunteer / volunteer123  ·  admin / admin123",
   "common.missing": "காணாமல்போனவர்",
   "common.found": "கண்டுபிடிக்கப்பட்டவர்",
   "common.male": "ஆண்",

@@ -16,7 +16,6 @@ const kn: Partial<Dict> = {
   "login.password": "ಪಾಸ್‌ವರ್ಡ್",
   "login.submit": "ಸೈನ್ ಇನ್",
   "login.error": "ತಪ್ಪಾದ ಬಳಕೆದಾರ ಹೆಸರು ಅಥವಾ ಪಾಸ್‌ವರ್ಡ್",
-  "login.demo": "ಡೆಮೊ: volunteer / volunteer123  ·  admin / admin123",
   "common.missing": "ಕಾಣೆಯಾಗಿದ್ದಾರೆ",
   "common.found": "ಸಿಕ್ಕಿದ್ದಾರೆ",
   "common.male": "ಪುರುಷ",

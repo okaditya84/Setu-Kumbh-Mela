@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowLeft, Mail, Send, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Spinner } from "@/components/ui";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const CONTACT_EMAIL = "hello@researchcommons.ai";
 
@@ -30,25 +31,28 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-full bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-full bg-slate-50 dark:bg-slate-950">
+      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-saffron-700">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-saffron-700">
             <ArrowLeft className="h-4 w-4" /> Back to home
           </Link>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-saffron-600 font-black text-white">से</span>
-            <span className="font-extrabold">Setu</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link href="/" className="flex items-center gap-2">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-saffron-600 font-black text-white">से</span>
+              <span className="font-extrabold">Setu</span>
+            </Link>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6">
         <h1 className="text-3xl font-extrabold tracking-tight">Contact us</h1>
-        <p className="mt-3 max-w-xl text-slate-600">
+        <p className="mt-3 max-w-xl text-slate-600 dark:text-slate-400">
           Questions, a deployment request, or a data enquiry? Send us a note and
           we&apos;ll get back to you. You can also email us directly at{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-saffron-700 hover:underline">
+          <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-saffron-700 dark:text-saffron-300 hover:underline">
             {CONTACT_EMAIL}
           </a>
           .
@@ -93,12 +97,12 @@ export default function ContactPage() {
             </div>
 
             {status === "sent" && (
-              <p className="inline-flex items-center gap-2 rounded-lg bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700">
+              <p className="inline-flex items-center gap-2 rounded-lg bg-teal-50 dark:bg-teal-950/40 px-3 py-2 text-sm font-medium text-teal-700 dark:text-teal-300">
                 <CheckCircle2 className="h-4 w-4" /> Thanks — we&apos;ll get back to you.
               </p>
             )}
             {status === "error" && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
+              <p className="rounded-lg bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm font-medium text-red-600">
                 Something went wrong. Please try again, or email us directly at {CONTACT_EMAIL}.
               </p>
             )}
@@ -110,16 +114,16 @@ export default function ContactPage() {
           </form>
 
           <aside className="card flex flex-col gap-4 p-6">
-            <div className="grid h-12 w-12 place-items-center rounded-xl bg-saffron-100 text-saffron-700">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-saffron-100 text-saffron-700 dark:bg-saffron-950/40 dark:text-saffron-300">
               <Mail className="h-6 w-6" />
             </div>
             <div>
               <p className="font-bold">Email us</p>
-              <a href={`mailto:${CONTACT_EMAIL}`} className="text-sm text-saffron-700 hover:underline">
+              <a href={`mailto:${CONTACT_EMAIL}`} className="text-sm text-saffron-700 dark:text-saffron-300 hover:underline">
                 {CONTACT_EMAIL}
               </a>
             </div>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               For data access, correction or deletion requests, please include
               the relevant case ID where possible.
             </p>

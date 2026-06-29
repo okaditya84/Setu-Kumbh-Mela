@@ -16,7 +16,6 @@ const te: Partial<Dict> = {
   "login.password": "పాస్‌వర్డ్",
   "login.submit": "సైన్ ఇన్",
   "login.error": "యూజర్‌నేమ్ లేదా పాస్‌వర్డ్ తప్పు",
-  "login.demo": "డెమో: volunteer / volunteer123  ·  admin / admin123",
   "common.missing": "తప్పిపోయారు",
   "common.found": "దొరికారు",
   "common.male": "పురుషుడు",

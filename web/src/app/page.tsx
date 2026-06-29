@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { getAuth } from "@/lib/api";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const CONTACT_EMAIL = "hello@researchcommons.ai";
 
@@ -30,7 +31,7 @@ function DemoMedia() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   return (
-    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-saffron-50 via-white to-teal-50 shadow-xl">
+    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-saffron-50 via-white to-teal-50 dark:from-saffron-950/40 dark:via-slate-900 dark:to-teal-950/40 shadow-xl">
       {!failed && (
         <video
           ref={videoRef}
@@ -58,25 +59,25 @@ function DemoMock() {
     <div className="absolute inset-0 grid place-items-center p-6">
       <div className="flex w-full max-w-md flex-col items-center gap-4">
         {/* phone frame */}
-        <div className="relative w-44 rounded-[2rem] border-[6px] border-slate-900 bg-white p-3 shadow-2xl">
-          <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-slate-200" />
+        <div className="relative w-44 rounded-[2rem] border-[6px] border-slate-900 bg-white dark:bg-slate-800 p-3 shadow-2xl">
+          <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-slate-200 dark:bg-slate-700" />
           <div className="space-y-2">
-            <div className="h-2 w-2/3 rounded bg-slate-200" />
+            <div className="h-2 w-2/3 rounded bg-slate-200 dark:bg-slate-700" />
             <div className="grid place-items-center py-4">
               <span className="relative grid h-16 w-16 place-items-center rounded-full bg-saffron-600 text-white">
                 <span className="absolute inset-0 rounded-full bg-saffron-400 animate-pulsering" />
                 <Mic className="h-7 w-7" />
               </span>
             </div>
-            <div className="h-2 w-full rounded bg-slate-100" />
-            <div className="h-2 w-5/6 rounded bg-slate-100" />
-            <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-teal-50 px-2 py-1.5">
+            <div className="h-2 w-full rounded bg-slate-100 dark:bg-slate-800" />
+            <div className="h-2 w-5/6 rounded bg-slate-100 dark:bg-slate-800" />
+            <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/40 px-2 py-1.5">
               <CheckCircle2 className="h-4 w-4 text-teal-600" />
               <span className="h-2 w-2/3 rounded bg-teal-200" />
             </div>
           </div>
         </div>
-        <p className="text-center text-sm font-medium text-slate-500">
+        <p className="text-center text-sm font-medium text-slate-500 dark:text-slate-400">
           Speak in any language → matched across every center → reunited
         </p>
       </div>
@@ -143,8 +144,8 @@ const STEPS = [
 
 function toneClasses(tone: "saffron" | "teal") {
   return tone === "saffron"
-    ? "bg-saffron-100 text-saffron-700"
-    : "bg-teal-100 text-teal-700";
+    ? "bg-saffron-100 text-saffron-700 dark:bg-saffron-950/40 dark:text-saffron-300"
+    : "bg-teal-100 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300";
 }
 
 export default function LandingPage() {
@@ -158,9 +159,9 @@ export default function LandingPage() {
   const appHref = authed ? "/dashboard" : "/login";
 
   return (
-    <div className="min-h-full bg-white text-slate-900">
+    <div className="min-h-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
       {/* ---------------------------------------------------------------- Nav */}
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/85 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-saffron-600 font-black text-white">
@@ -170,46 +171,50 @@ export default function LandingPage() {
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">
-            <a href="#features" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
+            <a href="#features" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
               Features
             </a>
-            <a href="#how" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
+            <a href="#how" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
               How it works
             </a>
-            <Link href="/contact" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
+            <Link href="/contact" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
               Contact
             </Link>
-            <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
+            <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
               Sign in
             </Link>
             <Link href={appHref} className="btn-primary ml-1 px-4 py-2 text-sm">
               Open the app <ArrowRight className="h-4 w-4" />
             </Link>
+            <ThemeToggle className="ml-1" />
           </nav>
 
-          <button
-            className="rounded-lg p-2 hover:bg-slate-100 md:hidden"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Menu"
-            aria-expanded={menuOpen}
-          >
-            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          <div className="flex items-center gap-1 md:hidden">
+            <ThemeToggle />
+            <button
+              className="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Menu"
+              aria-expanded={menuOpen}
+            >
+              {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
 
         {menuOpen && (
-          <div className="border-t border-slate-200 bg-white px-4 py-3 md:hidden">
+          <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 md:hidden">
             <div className="flex flex-col gap-1">
-              <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+              <a href="#features" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
                 Features
               </a>
-              <a href="#how" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+              <a href="#how" onClick={() => setMenuOpen(false)} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
                 How it works
               </a>
-              <Link href="/contact" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+              <Link href="/contact" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
                 Contact
               </Link>
-              <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+              <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
                 Sign in
               </Link>
               <Link href={appHref} className="btn-primary mt-1 justify-center px-4 py-2 text-sm">
@@ -226,14 +231,14 @@ export default function LandingPage() {
         <div className="pointer-events-none absolute top-40 -left-24 h-72 w-72 rounded-full bg-teal-100 blur-3xl" />
         <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-20">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-saffron-50 px-3 py-1 text-sm font-medium text-saffron-700 ring-1 ring-saffron-100">
+            <span className="inline-flex items-center gap-2 rounded-full bg-saffron-50 dark:bg-saffron-950/40 px-3 py-1 text-sm font-medium text-saffron-700 dark:text-saffron-300 ring-1 ring-saffron-100">
               <span className="h-2 w-2 rounded-full bg-saffron-500" />
               Built for the Kumbh Mela
             </span>
             <h1 className="mt-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
               Reuniting families at the world&apos;s largest gathering.
             </h1>
-            <p className="mt-4 max-w-xl text-lg text-slate-600">
+            <p className="mt-4 max-w-xl text-lg text-slate-600 dark:text-slate-400">
               Setu is one unified, offline-first, voice-first lost-and-found
               registry for the Kumbh — so a missing child or elder reported at
               any center is instantly found across all of them.
@@ -246,7 +251,7 @@ export default function LandingPage() {
                 See how it works
               </a>
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500">
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500 dark:text-slate-400">
               <span className="inline-flex items-center gap-1.5"><Languages className="h-4 w-4 text-teal-600" /> 12 Indian languages</span>
               <span className="inline-flex items-center gap-1.5"><WifiOff className="h-4 w-4 text-teal-600" /> Works offline</span>
               <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-teal-600" /> Privacy by design</span>
@@ -257,30 +262,30 @@ export default function LandingPage() {
       </section>
 
       {/* ------------------------------------------------------------ Problem */}
-      <section className="border-y border-slate-200 bg-slate-50">
+      <section className="border-y border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
         <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-12 sm:px-6 sm:grid-cols-3 lg:px-8">
           <div>
-            <p className="text-3xl font-extrabold text-saffron-700">80M+</p>
-            <p className="mt-1 text-sm text-slate-600">pilgrims gather at a single Kumbh, across vast, crowded ghats.</p>
+            <p className="text-3xl font-extrabold text-saffron-700 dark:text-saffron-300">80M+</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">pilgrims gather at a single Kumbh, across vast, crowded ghats.</p>
           </div>
           <div>
-            <p className="text-3xl font-extrabold text-saffron-700">Hundreds</p>
-            <p className="mt-1 text-sm text-slate-600">of people — often children and elders — are separated from family every day.</p>
+            <p className="text-3xl font-extrabold text-saffron-700 dark:text-saffron-300">Hundreds</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">of people — often children and elders — are separated from family every day.</p>
           </div>
           <div>
-            <p className="text-3xl font-extrabold text-saffron-700">Siloed</p>
-            <p className="mt-1 text-sm text-slate-600">lost-and-found centers can&apos;t see each other&apos;s records, so searches stall.</p>
+            <p className="text-3xl font-extrabold text-saffron-700 dark:text-saffron-300">Siloed</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">lost-and-found centers can&apos;t see each other&apos;s records, so searches stall.</p>
           </div>
         </div>
         <div className="mx-auto w-full max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
-          <p className="max-w-3xl text-lg text-slate-700">
-            <span className="font-semibold text-slate-900">The problem:</span> when
+          <p className="max-w-3xl text-lg text-slate-700 dark:text-slate-200">
+            <span className="font-semibold text-slate-900 dark:text-slate-100">The problem:</span> when
             every camp keeps its own paper register, a family searching at one
             booth never learns their elder was found at another. Language
             barriers and patchy networks make it worse.
           </p>
-          <p className="mt-3 max-w-3xl text-lg text-slate-700">
-            <span className="font-semibold text-slate-900">Setu&apos;s answer:</span> a
+          <p className="mt-3 max-w-3xl text-lg text-slate-700 dark:text-slate-200">
+            <span className="font-semibold text-slate-900 dark:text-slate-100">Setu&apos;s answer:</span> a
             single shared registry that listens in any language, works without a
             signal, and matches reports across every center automatically.
           </p>
@@ -291,7 +296,7 @@ export default function LandingPage() {
       <section id="features" className="mx-auto w-full max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <h2 className="text-3xl font-extrabold tracking-tight">Everything a reunion needs</h2>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-3 text-slate-600 dark:text-slate-400">
             Designed with tired volunteers and anxious families in mind — fast,
             forgiving, and usable by anyone.
           </p>
@@ -303,18 +308,18 @@ export default function LandingPage() {
                 <f.icon className="h-6 w-6" />
               </div>
               <h3 className="text-lg font-bold">{f.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{f.body}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{f.body}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* -------------------------------------------------------------- Steps */}
-      <section id="how" className="scroll-mt-20 border-y border-slate-200 bg-slate-50">
+      <section id="how" className="scroll-mt-20 border-y border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
         <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <h2 className="text-3xl font-extrabold tracking-tight">How it works in 3 steps</h2>
-            <p className="mt-3 text-slate-600">From a worried report to a confirmed reunion.</p>
+            <p className="mt-3 text-slate-600 dark:text-slate-400">From a worried report to a confirmed reunion.</p>
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {STEPS.map((s, i) => (
@@ -322,11 +327,11 @@ export default function LandingPage() {
                 <span className="absolute -top-3 -left-3 grid h-9 w-9 place-items-center rounded-full bg-saffron-600 text-sm font-bold text-white shadow">
                   {i + 1}
                 </span>
-                <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-teal-100 text-teal-700">
+                <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-teal-100 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300">
                   <s.icon className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-bold">{s.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{s.body}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{s.body}</p>
               </div>
             ))}
           </div>
@@ -337,11 +342,11 @@ export default function LandingPage() {
       <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-5 md:grid-cols-2">
           <div className="card flex flex-col p-7">
-            <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-saffron-100 text-saffron-700">
+            <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-saffron-100 text-saffron-700 dark:bg-saffron-950/40 dark:text-saffron-300">
               <Search className="h-6 w-6" />
             </div>
             <h3 className="text-xl font-bold">Looking for someone?</h3>
-            <p className="mt-2 text-slate-600">
+            <p className="mt-2 text-slate-600 dark:text-slate-400">
               Families can report a missing relative in their own language and be
               alerted the moment a match is found at any center. No forms to
               learn — just speak.
@@ -351,11 +356,11 @@ export default function LandingPage() {
             </Link>
           </div>
           <div className="card flex flex-col p-7">
-            <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-teal-100 text-teal-700">
+            <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-teal-100 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300">
               <UserPlus className="h-6 w-6" />
             </div>
             <h3 className="text-xl font-bold">Found a lost person?</h3>
-            <p className="mt-2 text-slate-600">
+            <p className="mt-2 text-slate-600 dark:text-slate-400">
               Volunteers and staff register a found child or elder in seconds.
               Setu instantly checks every open missing report across the mela.
             </p>
@@ -383,42 +388,42 @@ export default function LandingPage() {
       </section>
 
       {/* ------------------------------------------------------------- Footer */}
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-12 sm:px-6 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2">
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-saffron-600 font-black text-white">से</span>
               <span className="font-extrabold">Setu</span>
             </div>
-            <p className="mt-3 max-w-xs text-sm text-slate-500">
+            <p className="mt-3 max-w-xs text-sm text-slate-500 dark:text-slate-400">
               A unified, offline-first lost-and-found network for the Kumbh Mela.
             </p>
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-900">Product</p>
-            <ul className="mt-3 space-y-2 text-sm text-slate-500">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Product</p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-500 dark:text-slate-400">
               <li><a href="#features" className="hover:text-saffron-700">Features</a></li>
               <li><a href="#how" className="hover:text-saffron-700">How it works</a></li>
               <li><Link href="/login" className="hover:text-saffron-700">Sign in</Link></li>
             </ul>
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-900">Company</p>
-            <ul className="mt-3 space-y-2 text-sm text-slate-500">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Company</p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-500 dark:text-slate-400">
               <li><Link href="/contact" className="hover:text-saffron-700">Contact</Link></li>
               <li><Link href="/terms" className="hover:text-saffron-700">Terms</Link></li>
               <li><Link href="/privacy" className="hover:text-saffron-700">Privacy</Link></li>
             </ul>
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-900">Get in touch</p>
-            <a href={`mailto:${CONTACT_EMAIL}`} className="mt-3 inline-block text-sm text-saffron-700 hover:underline">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Get in touch</p>
+            <a href={`mailto:${CONTACT_EMAIL}`} className="mt-3 inline-block text-sm text-saffron-700 dark:text-saffron-300 hover:underline">
               {CONTACT_EMAIL}
             </a>
           </div>
         </div>
-        <div className="border-t border-slate-100">
-          <div className="mx-auto w-full max-w-6xl px-4 py-5 text-xs text-slate-400 sm:px-6 lg:px-8">
+        <div className="border-t border-slate-100 dark:border-slate-800">
+          <div className="mx-auto w-full max-w-6xl px-4 py-5 text-xs text-slate-400 dark:text-slate-500 sm:px-6 lg:px-8">
             © {new Date().getFullYear()} Setu. Built to reunite families at the Kumbh.
           </div>
         </div>

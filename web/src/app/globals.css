@@ -15,6 +15,16 @@ body {
   @apply bg-slate-50 text-slate-900 antialiased;
   font-family: var(--font-sans);
 }
+/* Dark theme is toggled by adding `.dark` to <html> (see ThemeProvider). The
+   central component utilities below carry their own dark variants, so every page
+   inherits a coherent dark surface without editing each call-site. */
+html.dark body {
+  @apply bg-slate-950 text-slate-100;
+}
+/* Map tiles are bright; dim them slightly in dark mode so they don't glare. */
+html.dark .leaflet-tile {
+  filter: brightness(0.75) contrast(1.05);
+}
 
 /* Large, finger-friendly tap targets for tired volunteers in the field. */
 @layer components {
@@ -29,17 +39,20 @@ body {
     @apply btn bg-teal-600 text-white hover:bg-teal-700 shadow-sm;
   }
   .btn-ghost {
-    @apply btn bg-white text-slate-700 border border-slate-200 hover:bg-slate-50;
+    @apply btn bg-white text-slate-700 border border-slate-200 hover:bg-slate-50
+      dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700 dark:hover:bg-slate-700;
   }
   .card {
-    @apply rounded-2xl bg-white border border-slate-200 shadow-sm;
+    @apply rounded-2xl bg-white border border-slate-200 shadow-sm
+      dark:bg-slate-900 dark:border-slate-800;
   }
   .input {
     @apply w-full rounded-xl border border-slate-300 px-4 py-3 text-base
-      focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-saffron-400;
+      focus:outline-none focus:ring-2 focus:ring-saffron-400 focus:border-saffron-400
+      dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500;
   }
   .label {
-    @apply block text-sm font-medium text-slate-600 mb-1;
+    @apply block text-sm font-medium text-slate-600 mb-1 dark:text-slate-300;
   }
   .chip {
     @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium;

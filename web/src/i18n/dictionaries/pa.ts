@@ -16,7 +16,6 @@ const pa: Partial<Dict> = {
   "login.password": "ਪਾਸਵਰਡ",
   "login.submit": "ਸਾਈਨ ਇਨ",
   "login.error": "ਗਲਤ ਯੂਜ਼ਰਨੇਮ ਜਾਂ ਪਾਸਵਰਡ",
-  "login.demo": "ਡੈਮੋ: volunteer / volunteer123  ·  admin / admin123",
   "common.missing": "ਗੁੰਮਸ਼ੁਦਾ",
   "common.found": "ਮਿਲਿਆ",
   "common.male": "ਮਰਦ",

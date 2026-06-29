@@ -229,7 +229,7 @@ export function VoiceCapture({ onResult, onInterim, onServerDraft, caseType, sto
 
       <div className="text-center min-h-[2.5rem]">
         {busy ? (
-          <span className="inline-flex items-center gap-1.5 font-semibold text-saffron-700">
+          <span className="inline-flex items-center gap-1.5 font-semibold text-saffron-700 dark:text-saffron-300">
             <Cloud className="h-4 w-4 animate-pulse" /> Transcribing your recording…
           </span>
         ) : recording ? (
@@ -237,19 +237,19 @@ export function VoiceCapture({ onResult, onInterim, onServerDraft, caseType, sto
             <p className="inline-flex items-center gap-1.5 font-semibold text-red-600">
               <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" /> Recording…
             </p>
-            <p className="text-sm text-slate-500">Tap the red button when you finish — we&apos;ll transcribe it</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Tap the red button when you finish — we&apos;ll transcribe it</p>
           </div>
         ) : (
-          <p className="font-semibold text-slate-700">{t("intake.tapToSpeak")}</p>
+          <p className="font-semibold text-slate-700 dark:text-slate-200">{t("intake.tapToSpeak")}</p>
         )}
       </div>
 
       {(recording || busy || caption) && (
-        <div className="w-full max-w-sm min-h-[3rem] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+        <div className="w-full max-w-sm min-h-[3rem] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-center">
           {caption ? (
-            <p className="text-sm text-slate-700">{caption}</p>
+            <p className="text-sm text-slate-700 dark:text-slate-200">{caption}</p>
           ) : (
-            <p className="text-sm text-slate-400 italic">
+            <p className="text-sm text-slate-400 dark:text-slate-500 italic">
               {busy ? "Transcribing…" : "Speak now — your words appear here after you tap stop."}
             </p>
           )}
@@ -257,12 +257,12 @@ export function VoiceCapture({ onResult, onInterim, onServerDraft, caseType, sto
       )}
 
       {error && (
-        <p className="flex items-center gap-1.5 text-sm text-amber-700 max-w-sm text-center">
+        <p className="flex items-center gap-1.5 text-sm text-amber-700 dark:text-amber-300 max-w-sm text-center">
           <AlertCircle className="h-4 w-4 shrink-0" /> {error}
         </p>
       )}
       {phase === "idle" && !error && (
-        <p className="text-xs text-slate-400 max-w-sm text-center">{t("intake.speakHint")}</p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 max-w-sm text-center">{t("intake.speakHint")}</p>
       )}
     </div>
   );

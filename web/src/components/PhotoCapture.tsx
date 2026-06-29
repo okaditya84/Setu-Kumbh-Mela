@@ -81,8 +81,8 @@ export function PhotoCapture({ value, onChange }: Props) {
       {value ? (
         <div className="relative inline-block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt="captured" className="h-40 w-40 rounded-xl object-cover border border-slate-200" />
-          <button type="button" onClick={() => onChange(null)} className="absolute -top-2 -right-2 bg-white border rounded-full p-1.5 shadow" aria-label="retake">
+          <img src={value} alt="captured" className="h-40 w-40 rounded-xl object-cover border border-slate-200 dark:border-slate-700" />
+          <button type="button" onClick={() => onChange(null)} className="absolute -top-2 -right-2 bg-white dark:bg-slate-800 border rounded-full p-1.5 shadow" aria-label="retake">
             <RotateCcw className="h-4 w-4" />
           </button>
         </div>
@@ -111,7 +111,7 @@ export function PhotoCapture({ value, onChange }: Props) {
         </button>
       )}
       {error && (
-        <p className="mt-1 flex items-center gap-1.5 text-xs text-amber-700">
+        <p className="mt-1 flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-300">
           <AlertCircle className="h-3.5 w-3.5" /> {error}
         </p>
       )}

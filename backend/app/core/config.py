@@ -54,6 +54,21 @@ class Settings(BaseSettings):
     # case is marked Reunited. The non-identifying record is retained for stats.
     PII_PURGE_AFTER_HOURS: int = 72
 
+    # ----------------------------- Public accounts ----------------------
+    # Lets ordinary people (families) self-register an email/password account so
+    # they can report a missing relative themselves. These are NON-admin,
+    # NON-volunteer accounts (role="public"); admin/volunteer logins stay private.
+    PUBLIC_SIGNUP_ENABLED: bool = True
+    SIGNUP_DEFAULT_ROLE: str = "public"
+
+    # ----------------------------- Google OAuth -------------------------
+    # Optional "Continue with Google" sign-in. Leave blank to disable the button.
+    # GOOGLE_CLIENT_ID must match the OAuth 2.0 Web client created in the GCP
+    # console; the server verifies Google ID tokens against it. The same value is
+    # exposed to the web client via NEXT_PUBLIC_GOOGLE_CLIENT_ID.
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+
     # ----------------------------- Seed / data ---------------------------
     DATA_DIR: str = "data"
     SEED_ON_STARTUP: bool = True  # load reference geo + (optionally) sample cases
