@@ -25,12 +25,12 @@ SECRET_KEY=paste-the-long-random-text-here
 
 ---
 
-## 2. The AI brain (LLM) — optional
+## 2. The AI brain (LLM) - optional
 
 Pick **one** provider. You set three lines: `LLM_PROVIDER`, `LLM_MODEL`,
 `LLM_API_KEY`. (You never need `LLM_BASE_URL` unless you use a custom gateway.)
 
-### Option A — Anthropic (Claude)  ← what this project is set up for
+### Option A - Anthropic (Claude)  ← what this project is set up for
 1. Go to **https://console.anthropic.com** and sign up / log in.
 2. Add a small amount of credit under **Billing** (a few dollars lasts the event).
 3. Left menu → **API Keys** → **Create Key** → copy it (starts with `sk-ant-`).
@@ -41,7 +41,7 @@ Pick **one** provider. You set three lines: `LLM_PROVIDER`, `LLM_MODEL`,
    LLM_API_KEY=sk-ant-...your key...
    ```
 
-### Option B — OpenAI (GPT)
+### Option B - OpenAI (GPT)
 1. **https://platform.openai.com** → log in → add billing credit.
 2. **API keys** → **Create new secret key** → copy (starts with `sk-`).
 3. ```
@@ -50,7 +50,7 @@ Pick **one** provider. You set three lines: `LLM_PROVIDER`, `LLM_MODEL`,
    LLM_API_KEY=sk-...your key...
    ```
 
-### Option C — Google Gemini  (has a free tier)
+### Option C - Google Gemini  (has a free tier)
 1. **https://aistudio.google.com/app/apikey** → **Create API key** → copy.
 2. ```
    LLM_PROVIDER=gemini
@@ -58,7 +58,7 @@ Pick **one** provider. You set three lines: `LLM_PROVIDER`, `LLM_MODEL`,
    LLM_API_KEY=...your key...
    ```
 
-### Option D — OpenRouter (one key, many models)
+### Option D - OpenRouter (one key, many models)
 1. **https://openrouter.ai** → **Keys** → create key (starts with `sk-or-`).
 2. ```
    LLM_PROVIDER=openrouter
@@ -66,7 +66,7 @@ Pick **one** provider. You set three lines: `LLM_PROVIDER`, `LLM_MODEL`,
    LLM_API_KEY=sk-or-...your key...
    ```
 
-### Option E — DeepSeek (low cost)
+### Option E - DeepSeek (low cost)
 1. **https://platform.deepseek.com** → **API keys** → create.
 2. ```
    LLM_PROVIDER=deepseek
@@ -74,12 +74,12 @@ Pick **one** provider. You set three lines: `LLM_PROVIDER`, `LLM_MODEL`,
    LLM_API_KEY=...your key...
    ```
 
-> Groq, Together and a local Ollama also work — set `LLM_PROVIDER` to that name,
+> Groq, Together and a local Ollama also work - set `LLM_PROVIDER` to that name,
 > the model id, and the key. The official URL is built in for all of them.
 
 ---
 
-## 3. Voice transcription (STT) — optional
+## 3. Voice transcription (STT) - optional
 
 Only needed if you want the **server** to transcribe audio. The phone/browser
 already does on-device speech-to-text for free, so this is a bonus for noisy
@@ -118,7 +118,7 @@ For prettier vector tiles you can paste a MapTiler/Stadia style URL there later.
 ---
 
 ## 5. Database (only for production persistence)
-Default is a local file (SQLite) — nothing to do. For a permanent multi-server
+Default is a local file (SQLite) - nothing to do. For a permanent multi-server
 database (e.g. on Render), create a free Postgres, copy its connection URL into
 `DATABASE_URL`, and install the Postgres driver:
 `pip install -r backend/requirements-postgres.txt`.
@@ -128,4 +128,4 @@ database (e.g. on Render), create a free Postgres, copy its connection URL into
 ## ⚠️ Never share your keys
 Keys are like passwords. `backend/.env` is **git-ignored** so it is never
 uploaded. Never paste a real key into `.env.example` or any file that gets
-committed — GitHub will block the push if you do.
+committed - GitHub will block the push if you do.
