@@ -36,7 +36,7 @@ flutter pub get
 # add permissions per mobile/README.md, then:
 flutter build apk --release --dart-define=API_BASE=https://setu-backend.onrender.com
 ```
-The APK is at `build/app/outputs/flutter-apk/app-release.apk` — share it to
+The APK is at `build/app/outputs/flutter-apk/app-release.apk` - share it to
 install on any Android phone. iOS uses the same code via `flutter build ipa`.
 
 ## Local cross-team dev → Docker Compose

@@ -16,7 +16,7 @@ Send `Authorization: Bearer <token>` on every other call.
 - `GET /config` → client config (map defaults, feature flags). No secrets.
 
 ## Cases
-### `POST /cases` — create a case AND get matches in one call
+### `POST /cases` - create a case AND get matches in one call
 Body (`CaseCreate`): `case_type` (`missing`|`found`), optional `client_uuid`,
 `person_name`, `gender`, `age_band`, `state`, `district`, `language`,
 `last_seen_location`, `last_seen_lat/lng`, `physical_description`,
@@ -32,7 +32,7 @@ Returns a **`MatchResponse`** (see below). Idempotent on `client_uuid`.
 - `GET /cases/{id}/announcement?language=Hindi` → `{ language, text, generated_by }`
 
 `CaseOut` exposes `reporter_mobile_masked` (e.g. `98xxxx10`), `has_secret`,
-`secret_question` (the question only), `photo_url`, `normalized` — never the raw
+`secret_question` (the question only), `photo_url`, `normalized` - never the raw
 phone or the secret answer.
 
 ## Matching
@@ -43,7 +43,7 @@ phone or the secret answer.
   "candidates": [
     { "case": CaseOut, "score": 12.3, "probability": 0.87, "tier": "strong",
       "breakdown": [{ "field": "geo", "detail": "last seen ~0.5 km apart", "weight": 1.4 }],
-      "explanation": "87% likely the same person — both Female; both speak Marathi; …" }
+      "explanation": "87% likely the same person - both Female; both speak Marathi; …" }
   ],
   "needs_disambiguation": false,
   "disambiguation_questions": [{ "field": "language", "question": "…", "options": ["…"] }],
