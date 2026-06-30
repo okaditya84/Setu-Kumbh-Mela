@@ -60,7 +60,9 @@ export const api = {
     req<AuthInfo>("/auth/google", { method: "POST", body: JSON.stringify({ credential }) }, false),
 
   health: () => req<{ status: string }>("/health", {}, false),
-  config: () => req<any>("/config", {}, false),
+  // no-store: always read fresh feature flags (e.g. the Google client id) so a
+  // browser-cached response never hides a freshly-enabled button.
+  config: () => req<any>("/config", { cache: "no-store" }, false),
 
   // Public contact form - no auth required.
   contact: (name: string, email: string, message: string) =>
