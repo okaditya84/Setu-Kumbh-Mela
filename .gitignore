@@ -42,3 +42,6 @@ mobile/android/local.properties
 
 # Runtime translation cache (regenerated on demand)
 backend/data/i18n_cache/
+
+# Google OAuth client secret downloads (never commit)
+client_secret_*.json
