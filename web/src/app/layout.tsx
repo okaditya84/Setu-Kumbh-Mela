@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { Providers } from "./providers";
 import { themeInitScript } from "@/lib/theme";
@@ -187,6 +189,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Providers>{children}</Providers>
+        {/* Privacy-friendly product analytics + real-user performance metrics. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
