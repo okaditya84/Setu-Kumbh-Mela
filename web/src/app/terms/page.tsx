@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "Terms of Use — Setu",
+  title: "Terms of Use - Setu",
   description: "Terms of use for the Setu Kumbh lost-and-found network.",
 };
 
-const CONTACT_EMAIL = "hello@researchcommons.ai";
+const CONTACT_EMAIL = "adityajethani11@gmail.com";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -69,7 +69,7 @@ export default function TermsPage() {
             Setu offers a secret-question check to help confirm a true family
             member before a person is released. This is an assistive safeguard,
             not a guarantee of identity. Final decisions about releasing any
-            person — especially a child or vulnerable adult — rest with the
+            person - especially a child or vulnerable adult - rest with the
             responsible on-site authorities and must follow local law and
             safeguarding procedures.
           </p>

@@ -78,7 +78,7 @@ export default function CasesPage() {
               <CaseBadges caseType={c.case_type} status={c.status} t={t} />
             </Link>
           ))}
-        {!loading && cases.length === 0 && <p className="col-span-full text-center text-slate-400 dark:text-slate-500 py-6">—</p>}
+        {!loading && cases.length === 0 && <p className="col-span-full text-center text-slate-400 dark:text-slate-500 py-6">-</p>}
       </div>
     </AppFrame>
   );

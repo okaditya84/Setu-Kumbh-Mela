@@ -3,7 +3,7 @@
 A photo is turned into a vector by an external, env-configured embedding service
 (``FACE_PROVIDER=http``). Face cosine similarity then becomes a dominant matching
 signal (see scorer.py). When ``FACE_PROVIDER=none`` (default) this is inert and
-photos are used purely for human recognition — keeping the free-tier deploy light
+photos are used purely for human recognition - keeping the free-tier deploy light
 and never putting a heavy model on the critical path.
 
 The HTTP contract is intentionally simple so it works with most hosted services:

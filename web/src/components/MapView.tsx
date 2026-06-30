@@ -8,7 +8,7 @@ import { DEFAULT_MAP } from "@/lib/config";
 
 // Leaflet (DOM raster tiles, no WebGL) so it works in Brave/hardened browsers
 // where MapLibre's WebGL canvas is blocked. OpenStreetMap tiles, no API key.
-// Loaded with ssr:false (see app/map/page.tsx) — Leaflet touches `window` at import.
+// Loaded with ssr:false (see app/map/page.tsx) - Leaflet touches `window` at import.
 type LayerKey = "cases" | "hotspots" | "police" | "cctv";
 
 export default function MapView() {
@@ -61,7 +61,7 @@ export default function MapView() {
       api.geoCases().catch(() => ({ cases: [] })),
     ]);
 
-    // Risk hotspots — translucent red circles sized by risk.
+    // Risk hotspots - translucent red circles sized by risk.
     for (const h of hotspots.hotspots || []) {
       L.circle([h.lat, h.lng], {
         radius: 70 + (h.risk_score || 1) * 70,
@@ -71,7 +71,7 @@ export default function MapView() {
         fillOpacity: 0.1,
       }).addTo(groups.current.hotspots);
     }
-    // CCTV — small blue dots (hidden by default).
+    // CCTV - small blue dots (hidden by default).
     for (const c of layers.cctv || []) {
       L.circleMarker([c.lat, c.lng], { radius: 2, color: "#0ea5e9", weight: 1, fillOpacity: 0.7 }).addTo(
         groups.current.cctv
@@ -83,7 +83,7 @@ export default function MapView() {
         .bindPopup(`<b>${s.name}</b><br/>Police station`)
         .addTo(groups.current.police);
     }
-    // Open cases — pulsing pins (saffron=missing, teal=found).
+    // Open cases - pulsing pins (saffron=missing, teal=found).
     for (const c of cases.cases || []) {
       const color = c.case_type === "missing" ? "#ea580c" : "#0d9488";
       L.circleMarker([c.lat, c.lng], {

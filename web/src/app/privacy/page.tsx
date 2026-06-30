@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 
 export const metadata = {
-  title: "Privacy Policy — Setu",
+  title: "Privacy Policy - Setu",
   description: "How Setu protects the personal data of people in the lost-and-found registry.",
 };
 
-const CONTACT_EMAIL = "hello@researchcommons.ai";
+const CONTACT_EMAIL = "adityajethani11@gmail.com";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -40,7 +40,7 @@ export default function PrivacyPage() {
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Last updated: 29 June 2026</p>
 
         <p className="mt-6 text-slate-600 dark:text-slate-400">
-          Setu handles sensitive information about vulnerable people — children,
+          Setu handles sensitive information about vulnerable people - children,
           elders and those who are lost. We collect the minimum needed to reunite
           them with their families, protect it carefully, and delete it as soon
           as it is no longer needed.

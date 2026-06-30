@@ -1,4 +1,4 @@
-"""Setu backend — FastAPI application entrypoint.
+"""Setu backend - FastAPI application entrypoint.
 
 Wires routers, middleware (CORS + request logging/metrics), DB init and seeding.
 Boots and serves the full critical path with zero external API keys.

@@ -134,7 +134,7 @@ export default function CaseDetailPage() {
     };
     const voicesNow = speechSynthesis.getVoices();
     if (voicesNow.length === 0) {
-      // Voices not loaded yet — wait for them once, then speak.
+      // Voices not loaded yet - wait for them once, then speak.
       const handler = () => {
         speechSynthesis.removeEventListener("voiceschanged", handler);
         pickVoice();
@@ -292,7 +292,7 @@ export default function CaseDetailPage() {
       <div>
       <h2 className="font-bold">{t("match.title")}</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-        Other reports that may be the SAME person, from any center — confirm to reunite.
+        Other reports that may be the SAME person, from any center - confirm to reunite.
       </p>
       {busy && <div className="mb-2"><Spinner className="h-5 w-5 text-saffron-600" /></div>}
       <div className="space-y-3">

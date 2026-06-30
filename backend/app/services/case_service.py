@@ -1,4 +1,4 @@
-"""Case intake / lifecycle service — the single place a Case is born or changes.
+"""Case intake / lifecycle service - the single place a Case is born or changes.
 
 Responsibilities:
 * build the structured ``normalized`` blob (deterministic, + optional LLM merge);

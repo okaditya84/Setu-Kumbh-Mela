@@ -63,7 +63,7 @@ class CaseStatusUpdate(BaseModel):
 
 
 class CaseRefine(BaseModel):
-    """Answer to a disambiguation question — updates the case and re-matches."""
+    """Answer to a disambiguation question - updates the case and re-matches."""
     gender: Optional[str] = None
     age_band: Optional[str] = None
     language: Optional[str] = None

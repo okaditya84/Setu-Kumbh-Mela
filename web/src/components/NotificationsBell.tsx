@@ -35,7 +35,7 @@ export function NotificationsBell() {
       const { count } = await api.notificationsUnreadCount();
       setCount(count);
     } catch {
-      // Silent — bell just shows last known count.
+      // Silent - bell just shows last known count.
     }
   }, []);
 

@@ -50,7 +50,7 @@ export function Modal({
 }) {
   // Render into document.body via a portal. Critical: the modal is position:fixed,
   // but the header has backdrop-filter which makes it a containing block for fixed
-  // descendants — so an in-header modal would anchor to the header, not the viewport.
+  // descendants - so an in-header modal would anchor to the header, not the viewport.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!open || !mounted) return null;

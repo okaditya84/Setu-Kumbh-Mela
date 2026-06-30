@@ -237,7 +237,7 @@ export function VoiceCapture({ onResult, onInterim, onServerDraft, caseType, sto
             <p className="inline-flex items-center gap-1.5 font-semibold text-red-600">
               <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" /> Recording…
             </p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Tap the red button when you finish — we&apos;ll transcribe it</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Tap the red button when you finish - we&apos;ll transcribe it</p>
           </div>
         ) : (
           <p className="font-semibold text-slate-700 dark:text-slate-200">{t("intake.tapToSpeak")}</p>
@@ -250,7 +250,7 @@ export function VoiceCapture({ onResult, onInterim, onServerDraft, caseType, sto
             <p className="text-sm text-slate-700 dark:text-slate-200">{caption}</p>
           ) : (
             <p className="text-sm text-slate-400 dark:text-slate-500 italic">
-              {busy ? "Transcribing…" : "Speak now — your words appear here after you tap stop."}
+              {busy ? "Transcribing…" : "Speak now - your words appear here after you tap stop."}
             </p>
           )}
         </div>

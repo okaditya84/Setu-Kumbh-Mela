@@ -77,7 +77,7 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-saffron-600 text-white font-black">से</span>
             <span className="font-extrabold tracking-tight">{t("app.name")}</span>
           </Link>
-          {/* Inline nav (large screens only — small screens use the bottom bar) */}
+          {/* Inline nav (large screens only - small screens use the bottom bar) */}
           <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
             {nav.map((n) => (
               <TopNavLink key={n.href} {...n} active={pathname === n.href.split("?")[0]} />
@@ -104,7 +104,7 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
           <div className={`text-center text-xs py-1 ${online ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" : "bg-slate-800 text-white"}`}>
             {!online ? (
               <span className="inline-flex items-center gap-1.5">
-                <WifiOff className="h-3.5 w-3.5" /> {t("common.offline")} — {t("sync.offlineNote")}
+                <WifiOff className="h-3.5 w-3.5" /> {t("common.offline")} - {t("sync.offlineNote")}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5">
@@ -117,7 +117,22 @@ export function AppFrame({ children, requireAdmin = false }: { children: React.R
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6 lg:px-8 py-4 lg:py-6">{children}</main>
 
-      {/* Bottom nav (thumb reach) — small/medium screens only */}
+      {/* App footer: a clear route back to the public site + legal pages. */}
+      <footer className="mt-6 border-t border-slate-200 dark:border-slate-800">
+        <div className="mx-auto w-full max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-2 px-4 sm:px-6 lg:px-8 py-4 text-xs text-slate-500 dark:text-slate-400">
+          <Link href="/" className="inline-flex items-center gap-1.5 font-medium hover:text-saffron-700 dark:hover:text-saffron-400">
+            <Home className="h-3.5 w-3.5" /> {t("app.name")} home
+          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/map" className="hover:text-saffron-700 dark:hover:text-saffron-400">{t("nav.map")}</Link>
+            <Link href="/contact" className="hover:text-saffron-700 dark:hover:text-saffron-400">Contact</Link>
+            <Link href="/privacy" className="hover:text-saffron-700 dark:hover:text-saffron-400">Privacy</Link>
+            <Link href="/terms" className="hover:text-saffron-700 dark:hover:text-saffron-400">Terms</Link>
+          </div>
+        </div>
+      </footer>
+
+      {/* Bottom nav (thumb reach) - small/medium screens only */}
       <nav className="fixed bottom-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 lg:hidden">
         <div className="mx-auto max-w-3xl flex items-center justify-around py-1">
           {nav.map((n) => (

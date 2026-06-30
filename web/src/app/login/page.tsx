@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogIn } from "lucide-react";
+import { LogIn, ArrowLeft } from "lucide-react";
 import { api, setAuth } from "@/lib/api";
 import { useI18n } from "@/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -35,14 +35,19 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-full flex flex-col">
-      <div className="flex justify-end gap-1 p-3">
-        <ThemeToggle />
-        <LanguageSwitcher />
+      <div className="flex items-center justify-between gap-1 p-3">
+        <Link href="/" className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <ArrowLeft className="h-4 w-4" /> {t("common.back")}
+        </Link>
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <LanguageSwitcher />
+        </div>
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
-        <div className="grid h-16 w-16 place-items-center rounded-2xl bg-saffron-600 text-white text-2xl font-black mb-3">
+        <Link href="/" className="grid h-16 w-16 place-items-center rounded-2xl bg-saffron-600 text-white text-2xl font-black mb-3" aria-label={t("app.name")}>
           से
-        </div>
+        </Link>
         <h1 className="text-2xl font-extrabold">{t("app.name")}</h1>
         <p className="text-slate-500 dark:text-slate-400 mb-6">{t("app.tagline")}</p>
 

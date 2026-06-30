@@ -1,6 +1,6 @@
 """Admin observability: live operational metrics + audit feed + purge control.
 
-This is the administrator's window into the whole platform — case throughput,
+This is the administrator's window into the whole platform - case throughput,
 reunion rate, time-to-reunite, where separations cluster, and a live event feed.
 """
 from __future__ import annotations

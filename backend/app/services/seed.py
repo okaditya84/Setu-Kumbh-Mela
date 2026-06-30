@@ -24,7 +24,7 @@ from app.geo.gazetteer import resolve_location
 from app.matching.normalize import build_normalized
 
 # Demo accounts with realistic volunteer names, spread across centers.
-# Passwords are demo-only — change in production.
+# Passwords are demo-only - change in production.
 DEFAULT_OPERATORS = [
     {"username": "admin", "password": "admin123", "role": Role.admin.value,
      "center": "Central Control Room", "full_name": "Vikram Deshpande (Control Room)"},

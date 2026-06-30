@@ -29,7 +29,7 @@ function IntakeInner() {
   // Preview result (NOT persisted). Set by previewCase on "Find matches".
   const [matches, setMatches] = useState<MatchResponse | null>(null);
   const [savedOffline, setSavedOffline] = useState(false);
-  // The real persisted case id — set ONLY after the volunteer explicitly registers.
+  // The real persisted case id - set ONLY after the volunteer explicitly registers.
   const [registeredId, setRegisteredId] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -174,7 +174,7 @@ function IntakeInner() {
     }
   }
 
-  // "Confirm reunion" — register the report first (if not yet), then decide.
+  // "Confirm reunion" - register the report first (if not yet), then decide.
   async function confirm(candidateCaseId: string) {
     setConfirmingId(candidateCaseId);
     try {
@@ -191,7 +191,7 @@ function IntakeInner() {
 
   const title = caseType === "missing" ? t("intake.titleMissing") : t("intake.titleFound");
 
-  // Don't allow submitting a blank report — require at least one meaningful signal
+  // Don't allow submitting a blank report - require at least one meaningful signal
   // (a typed/parsed field, a photo, or captured voice audio).
   const meaningfulFields: (keyof CaseDraft)[] = [
     "person_name",
@@ -309,7 +309,7 @@ function IntakeInner() {
               <div className="grid grid-cols-2 gap-3">
                 <Field label={t("intake.language")}>
                   <select className="input" value={draft.language || ""} onChange={(e) => set("language", e.target.value)}>
-                    <option value="">—</option>
+                    <option value="">-</option>
                     {LANGUAGES.map((l) => (
                       <option key={l.code} value={l.announceName}>{l.announceName}</option>
                     ))}
@@ -317,7 +317,7 @@ function IntakeInner() {
                 </Field>
                 <Field label={t("intake.lastSeen")}>
                   <select className="input" value={draft.last_seen_location || ""} onChange={(e) => set("last_seen_location", e.target.value)}>
-                    <option value="">—</option>
+                    <option value="">-</option>
                     {locations.map((l) => (
                       <option key={l} value={l}>{l}</option>
                     ))}
@@ -390,7 +390,7 @@ function IntakeInner() {
             <span className="text-xs text-slate-400 dark:text-slate-500">{matches.total_considered} {t("match.considered")}</span>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 -mt-2">
-            Other reports that may be the SAME person, from any center — confirm to reunite.
+            Other reports that may be the SAME person, from any center - confirm to reunite.
           </p>
 
           {matches.needs_disambiguation && matches.disambiguation_questions.length > 0 && (
@@ -427,7 +427,7 @@ function IntakeInner() {
             </div>
           )}
 
-          {/* (c) Explicit register action — the ONLY way to persist */}
+          {/* (c) Explicit register action - the ONLY way to persist */}
           <div className="card p-4 bg-saffron-50 dark:bg-saffron-950/40 border-saffron-200 dark:border-saffron-900 sticky bottom-24 lg:static lg:bottom-auto">
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Nothing is saved yet. Review the details above, then register.</p>
             <button onClick={register} disabled={registering} className="btn-primary w-full py-4 text-lg">

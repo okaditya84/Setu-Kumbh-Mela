@@ -1,4 +1,4 @@
-// English — the complete reference dictionary. All other dictionaries inherit
+// English - the complete reference dictionary. All other dictionaries inherit
 // missing keys from this one at runtime, so the app never shows a raw key.
 const en = {
   "app.name": "Setu",
@@ -70,7 +70,7 @@ const en = {
   "intake.titleFound": "Register a found person",
   "intake.tapToSpeak": "Tap and speak",
   "intake.listening": "Listening… speak now",
-  "intake.speakHint": "Speak in any language — e.g. “an elderly lady in a white saree, about 65, speaks Marathi, lost near Ramkund”",
+  "intake.speakHint": "Speak in any language - e.g. “an elderly lady in a white saree, about 65, speaks Marathi, lost near Ramkund”",
   "intake.heard": "Heard",
   "intake.orFillManually": "or fill the form",
   "intake.name": "Name",
@@ -93,10 +93,10 @@ const en = {
   "intake.secretHint": "Used to verify a true family member before release",
   "intake.submit": "Find matches",
   "intake.scanning": "Searching all centers…",
-  "intake.draftReady": "I filled this from your voice — please check",
+  "intake.draftReady": "I filled this from your voice - please check",
   "intake.permMic": "Microphone access is needed to record. Please allow it.",
   "intake.permCam": "Camera access is needed for a photo. Please allow it.",
-  "intake.noSpeech": "Voice typing isn't available on this browser — please type instead.",
+  "intake.noSpeech": "Voice typing isn't available on this browser - please type instead.",
 
   "match.title": "Possible matches",
   "match.strong": "Strong match",
@@ -105,7 +105,7 @@ const en = {
   "match.noMatches": "No matches yet. The report is saved and searchable at every center.",
   "match.why": "Why",
   "match.confirmReunion": "Confirm reunion",
-  "match.disambiguation": "Too many similar people — please answer to narrow it down:",
+  "match.disambiguation": "Too many similar people - please answer to narrow it down:",
   "match.considered": "candidates considered",
   "match.reunitedOk": "Reunited! Both reports are now closed.",
   "match.viewCase": "Open",

@@ -44,7 +44,7 @@ export function TypeTag({
   );
 }
 
-/** Prominent colored status badge — the single source of "where is this case at". */
+/** Prominent colored status badge - the single source of "where is this case at". */
 export function StatusBadge({
   status,
   t,

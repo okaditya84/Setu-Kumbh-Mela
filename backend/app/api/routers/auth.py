@@ -45,7 +45,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 @router.post("/signup", response_model=TokenResponse)
 def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     """Public self-registration. Always creates a non-admin, non-volunteer
-    (``public``) account — privilege escalation is impossible from this route."""
+    (``public``) account - privilege escalation is impossible from this route."""
     if not settings.PUBLIC_SIGNUP_ENABLED:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Public sign-up is disabled")
     username = payload.email.strip().lower()

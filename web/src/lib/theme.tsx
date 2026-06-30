@@ -26,7 +26,7 @@ function apply(isDark: boolean) {
 
 /**
  * Inline script injected before paint so the correct theme is on <html> on the
- * very first frame — no white flash for dark-mode users. Kept in sync with the
+ * very first frame - no white flash for dark-mode users. Kept in sync with the
  * provider's logic above.
  */
 export const themeInitScript = `(function(){try{var t=localStorage.getItem('${KEY}')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;

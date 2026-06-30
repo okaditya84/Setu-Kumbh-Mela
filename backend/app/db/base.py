@@ -2,7 +2,7 @@
 
 SQLite by default (file DB, perfect for an offline edge box and the demo);
 point ``DATABASE_URL`` at Postgres for the multi-center production deployment.
-The rest of the codebase is storage-agnostic — no SQLite-only SQL is used.
+The rest of the codebase is storage-agnostic - no SQLite-only SQL is used.
 """
 from __future__ import annotations
 

@@ -68,7 +68,7 @@ export default function AdminPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Stat icon={Users} label={t("admin.totalCases")} value={tot.cases} color="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400" />
         <Stat icon={HeartHandshake} label={t("admin.reunionRate")} value={`${Math.round((tot.reunion_rate || 0) * 100)}%`} color="bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-300" />
-        <Stat icon={Clock} label={t("admin.avgResolution")} value={tot.avg_resolution_hours ? `${tot.avg_resolution_hours}${t("admin.hours")}` : "—"} color="bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300" />
+        <Stat icon={Clock} label={t("admin.avgResolution")} value={tot.avg_resolution_hours ? `${tot.avg_resolution_hours}${t("admin.hours")}` : "-"} color="bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300" />
         <Stat icon={AlertTriangle} label={t("admin.openCases")} value={tot.open_cases} color="bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" />
       </div>
 

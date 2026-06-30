@@ -4,7 +4,7 @@ Switch providers purely via env:
     VOICE_PROVIDER = sarvam | deepgram | elevenlabs | openai | none
     VOICE_API_KEY, VOICE_MODEL, VOICE_BASE_URL, VOICE_DEFAULT_LANGUAGE
 
-With ``none`` (default) audio is still stored — it just isn't transcribed, which
+With ``none`` (default) audio is still stored - it just isn't transcribed, which
 is exactly what we want: the voice *sample* is the primary artefact (a family
 identifies a relative by hearing them); the transcript is a bonus.
 """

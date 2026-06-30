@@ -1,4 +1,4 @@
-"""Voice-first intake endpoints — the "one big button" backend.
+"""Voice-first intake endpoints - the "one big button" backend.
 
 * POST /intake/voice : audio in -> transcript + structured draft case out.
   The client records once; on confirm it creates the case and (optionally)
@@ -46,7 +46,7 @@ async def parse_voice(
     # language). Passing None -> Sarvam language_code "unknown".
     transcript = stt.transcribe(blob, file.content_type or "audio/webm", None)
     if not transcript:
-        # STT unavailable/failed — tell the client to use on-device transcription.
+        # STT unavailable/failed - tell the client to use on-device transcription.
         return {
             "transcript": None,
             "draft": None,

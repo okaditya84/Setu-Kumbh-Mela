@@ -18,7 +18,7 @@ def health():
 def client_config():
     """Non-sensitive config the web/mobile clients read at startup.
 
-    Never returns API keys — only feature flags and map defaults.
+    Never returns API keys - only feature flags and map defaults.
     """
     return {
         "app_name": settings.APP_NAME,

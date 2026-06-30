@@ -3,11 +3,11 @@
 Two purposes:
 1. Store a short voice sample of a found person ("description" kind). A family
    member can *play it back* to recognise a relative with more conviction than a
-   text description — invaluable for the elderly who cannot give clear details.
+   text description - invaluable for the elderly who cannot give clear details.
 2. Anti-impersonation ("secret_answer" kind). At intake the volunteer records a
    secret question whose answer only the genuine family/person knows. When
    someone claims the person, the claimant's answer is checked against the stored
-   hash — blocking a would-be abductor from falsely claiming a child or elder.
+   hash - blocking a would-be abductor from falsely claiming a child or elder.
 """
 from __future__ import annotations
 
@@ -113,5 +113,5 @@ def verify_secret(
     audit(db, "case.verify", actor=user.id, entity_type="case", entity_id=case.id,
           meta={"verified": ok})
     db.commit()
-    msg = "Answer matches — identity confirmed." if ok else "Answer does not match. Do NOT release the person; escalate to police."
+    msg = "Answer matches - identity confirmed." if ok else "Answer does not match. Do NOT release the person; escalate to police."
     return VerifyResponse(verified=ok, message=msg)

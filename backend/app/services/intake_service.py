@@ -4,7 +4,7 @@ A volunteer taps one big button and says, in Hindi/English/Hinglish:
   "ek lady hai, white saree pehni hai, 60-65 saal ki, Marathi bolti hai,
    Ramkund ke paas mili."
 We transcribe it (provider-agnostic STT) and parse it into a structured draft
-case the volunteer can confirm in one glance — no tedious form filling.
+case the volunteer can confirm in one glance - no tedious form filling.
 
 The parser tries the LLM (handles mixed-language, messy speech, background
 chatter) and ALWAYS falls back to a deterministic extractor so it works offline.

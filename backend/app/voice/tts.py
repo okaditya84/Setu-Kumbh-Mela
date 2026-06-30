@@ -1,6 +1,6 @@
 """Provider-agnostic Text-to-Speech.
 
-Browsers can only speak languages with an OS-installed voice — most Indian
+Browsers can only speak languages with an OS-installed voice - most Indian
 languages have none, so a Gujarati announcement gets read in English. Serving
 real synthesized audio fixes that. Sarvam (Bulbul) is supported now; ElevenLabs
 is easy to add. Falls back to None (client then uses browser TTS) when no

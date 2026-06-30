@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     )
 
     # ----------------------------- App -----------------------------------
-    APP_NAME: str = "Setu — Kumbh Lost & Found Network"
+    APP_NAME: str = "Setu - Kumbh Lost & Found Network"
     APP_ENV: Literal["dev", "prod"] = "dev"
     API_PREFIX: str = "/api/v1"
     LOG_LEVEL: str = "INFO"
@@ -97,7 +97,7 @@ class Settings(BaseSettings):
     MATCH_LLM_EXPLANATIONS: bool = True
     # Re-run LLM attribute extraction when a case is CREATED. Off by default: the
     # voice intake path (/intake/parse) already does LLM extraction, and the
-    # deterministic normalizer covers structured submits — so this would be a
+    # deterministic normalizer covers structured submits - so this would be a
     # redundant per-report LLM call on the hot path. Enable only if desired.
     INTAKE_LLM_ENRICH: bool = False
 
@@ -123,7 +123,7 @@ class Settings(BaseSettings):
     # signal. provider: none | http
     #   http -> POST the image to an embedding service that returns a vector.
     # Default "none": photos are still captured, shown and used for HUMAN
-    # identification (families recognise by sight) — just not auto-embedded.
+    # identification (families recognise by sight) - just not auto-embedded.
     # Kept off by default so the free-tier deploy stays light (no heavy model).
     FACE_PROVIDER: str = "none"
     FACE_API_URL: Optional[str] = None     # e.g. a hosted face-embedding endpoint
@@ -149,7 +149,7 @@ class Settings(BaseSettings):
     # ----------------------------- Contact / SMTP (optional) --------------
     # Powers the website Contact form. Leave blank to disable sending (messages
     # are still logged to the audit feed). For Gmail use an App Password.
-    CONTACT_EMAIL: str = "hello@researchcommons.ai"
+    CONTACT_EMAIL: str = "adityajethani11@gmail.com"
     SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587
     SMTP_USER: Optional[str] = None
@@ -165,7 +165,7 @@ class Settings(BaseSettings):
     MAP_DEFAULT_ZOOM: float = 12.0
 
     # ----------------------------- Matching weights -----------------------
-    # Fellegi–Sunter style log-likelihood weights. These are the *defaults*;
+    # Fellegi-Sunter style log-likelihood weights. These are the *defaults*;
     # they are meant to be re-estimated from real reunification outcomes.
     # See app/matching/scorer.py for how they are applied.
     W_GENDER_AGREE: float = 2.2
@@ -205,7 +205,7 @@ class Settings(BaseSettings):
     MATCH_AUTO_THRESHOLD: float = 0.82    # show as "strong match"
     MATCH_REVIEW_THRESHOLD: float = 0.55  # show as "possible match"
     MATCH_MAX_CANDIDATES: int = 25
-    # Candidates below this probability are noise — never shown to the operator
+    # Candidates below this probability are noise - never shown to the operator
     # (kills the "everyone is an 8% match" effect on a thin query).
     MATCH_DISPLAY_FLOOR: float = 0.45
     # A cross-center match at/above this probability raises notifications to BOTH

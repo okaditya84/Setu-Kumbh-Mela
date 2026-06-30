@@ -1,4 +1,4 @@
-"""Matching accuracy evaluation — the honest, reproducible proof.
+"""Matching accuracy evaluation - the honest, reproducible proof.
 
 The synthetic dataset has no reliable ground-truth links (the
 ``is_duplicate_report`` flag does not point at a twin record). So instead of
@@ -9,13 +9,13 @@ whether the matcher reunites the pair.
 The noise deliberately exercises the hard edge cases:
 * the name is dropped (15-20% of real reports have none);
 * the volunteer's appearance wording differs from the family's wording
-  (reporter-perspective bias — low literal overlap);
+  (reporter-perspective bias - low literal overlap);
 * a clothing colour is translated into another Indian language or drifts;
 * the report time is hours later (temporal drift);
 * the age band is occasionally mis-judged to an adjacent band.
 
 We report recall@1, recall@5, MRR and the score separation between true pairs
-and the best non-pair — the numbers that calibrate the thresholds.
+and the best non-pair - the numbers that calibrate the thresholds.
 
 Run:  python -m scripts.eval_matcher --pairs 200
 """

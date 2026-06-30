@@ -1,16 +1,16 @@
-"""Intake normalization — turn messy free text into structured, comparable fields.
+"""Intake normalization - turn messy free text into structured, comparable fields.
 
 This module is the deterministic backbone behind several of the hard matching
 edge cases:
 
-* **Cross-language clothing colour** — "safed" / "vellai" / "shada" / "pandhra"
+* **Cross-language clothing colour** - "safed" / "vellai" / "shada" / "pandhra"
   all normalise to ``white``. A finite colour vocabulary across Indian languages.
-* **Stable vs transient descriptors** — a walking stick, blindness, a hearing aid
+* **Stable vs transient descriptors** - a walking stick, blindness, a hearing aid
   or a rudraksha mala are *stable* (high value); clothing colour is *transient*
   (drifts through the day) and is scored separately and weighted down.
-* **Nicknames** — "Raju" expands to {raj, rajesh, rajendra, rajkumar, raju}.
+* **Nicknames** - "Raju" expands to {raj, rajesh, rajendra, rajkumar, raju}.
   Deterministic for the common pet-names; the LLM layer reasons about the rest.
-* **Child age in free text** — "about 6 years" → age_band ``0-12``.
+* **Child age in free text** - "about 6 years" → age_band ``0-12``.
 
 Everything here runs offline with no model. The optional LLM enrichment in
 ``app/matching/engine.py`` only *adds* to what this produces; it is never required.

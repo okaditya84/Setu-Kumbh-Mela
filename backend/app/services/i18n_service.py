@@ -1,8 +1,8 @@
-"""Dynamic UI translations — nothing hard-coded per language.
+"""Dynamic UI translations - nothing hard-coded per language.
 
 There is exactly ONE source of truth: ``app/i18n/base_en.json`` (English).
 Any other language is produced on demand by the configured LLM and cached to
-disk + memory, so adding a language needs ZERO code or new files — the client
+disk + memory, so adding a language needs ZERO code or new files - the client
 just asks for it. With no LLM configured it gracefully returns English.
 """
 from __future__ import annotations
@@ -36,7 +36,7 @@ _SYS = (
     "using the correct native script. Keep every KEY exactly the same. Preserve "
     "placeholders like {{n}} and {{center}} verbatim. Keep strings short and natural for "
     "buttons and labels. Do not translate the app name 'Setu'. Output ONLY one valid JSON "
-    "object — no prose, no markdown."
+    "object - no prose, no markdown."
 )
 
 

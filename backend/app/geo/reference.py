@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Tuple
 from app.core.config import settings
 from app.geo.distance import haversine_km
 
-# Risk weight per chokepoint category — where crowds compress, separations spike.
+# Risk weight per chokepoint category - where crowds compress, separations spike.
 CATEGORY_RISK = {
     "No-vehicle pressure zone": 1.0,
     "Traffic choke point": 0.85,
@@ -131,7 +131,7 @@ def hotspots(case_points: Optional[List[Tuple[float, float]]] = None) -> List[di
 
     Base risk comes from chokepoint category (where crowds physically compress).
     If live case coordinates are supplied, nearby reported separations amplify a
-    chokepoint's score — so the map reflects *today's* pressure, not just static
+    chokepoint's score - so the map reflects *today's* pressure, not just static
     geography. CCTV coverage nearby is reported so organizers can see blind spots.
     """
     case_points = case_points or []

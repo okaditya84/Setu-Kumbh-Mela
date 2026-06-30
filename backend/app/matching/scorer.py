@@ -1,4 +1,4 @@
-"""Probabilistic record-linkage scorer (Fellegi–Sunter style).
+"""Probabilistic record-linkage scorer (Fellegi-Sunter style).
 
 Given a MISSING case and a FOUND case, accumulate per-field evidence weights
 (positive for agreement, negative for conflict), then map the total to a 0..1
@@ -6,13 +6,13 @@ probability with a calibrated logistic. Every field contributes a line to a
 human-readable ``breakdown`` so an operator sees *why* a match was proposed.
 
 Robust to missing data: a field that is blank on either side simply contributes
-nothing — there is no imputation and no penalty. Identity is therefore decided
+nothing - there is no imputation and no penalty. Identity is therefore decided
 by whatever evidence is actually present, which is exactly how a good human
 operator reasons.
 
 Transient vs stable handling:
 * clothing colour weight decays with the time gap between the two reports
-  (temporal drift — white at 08:00 reads grey by 16:00);
+  (temporal drift - white at 08:00 reads grey by 16:00);
 * stable descriptors (walking stick, blindness, rudraksha) keep full weight.
 """
 from __future__ import annotations
@@ -159,7 +159,7 @@ def score_pair(a: Case, b: Case) -> ScoreResult:
             w = s.W_GEO_NEAR + frac * (s.W_GEO_FAR - s.W_GEO_NEAR)
             add("geo", f"last seen ~{d:.1f} km apart", w)
 
-    # --- clothing colour (transient — decays with time gap) ------------------
+    # --- clothing colour (transient - decays with time gap) ------------------
     colors = _overlap(na.get("colors", []), nb.get("colors", []))
     if colors:
         gap = _hours_between(a.reported_at, b.reported_at)

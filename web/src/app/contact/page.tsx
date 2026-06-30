@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { Spinner } from "@/components/ui";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-const CONTACT_EMAIL = "hello@researchcommons.ai";
+const CONTACT_EMAIL = "adityajethani11@gmail.com";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
@@ -98,7 +98,7 @@ export default function ContactPage() {
 
             {status === "sent" && (
               <p className="inline-flex items-center gap-2 rounded-lg bg-teal-50 dark:bg-teal-950/40 px-3 py-2 text-sm font-medium text-teal-700 dark:text-teal-300">
-                <CheckCircle2 className="h-4 w-4" /> Thanks — we&apos;ll get back to you.
+                <CheckCircle2 className="h-4 w-4" /> Thanks - we&apos;ll get back to you.
               </p>
             )}
             {status === "error" && (

@@ -43,7 +43,7 @@ export function MatchCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                {/* TYPE of the matched record — so the operator knows this is e.g. a
+                {/* TYPE of the matched record - so the operator knows this is e.g. a
                     FOUND person at another center, NOT a family member. */}
                 <span
                   className={`inline-flex items-center gap-1 text-[11px] font-semibold rounded-full px-2 py-0.5 ${
