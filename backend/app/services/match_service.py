@@ -93,7 +93,7 @@ def build_match_response(db: Session, query: Case, persist: bool = True,
 
 
 def preview(db: Session, payload) -> MatchResponse:
-    """Score a draft against the registry WITHOUT persisting it — for the
+    """Score a draft against the registry WITHOUT persisting it - for the
     confirm-before-register flow. No notifications are raised here."""
     from app.services.case_service import build_transient_case
     transient = build_transient_case(db, payload)

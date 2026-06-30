@@ -2,7 +2,7 @@
 
 LLM path produces a fluent announcement in *any* language. Without an LLM we
 fall back to a deterministic template (English + a few built-in Indian-language
-templates), so the feature still works fully offline — just less fluently.
+templates), so the feature still works fully offline - just less fluently.
 """
 from __future__ import annotations
 

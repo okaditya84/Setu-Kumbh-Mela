@@ -3,7 +3,7 @@
 Clients (web PWA / Flutter) queue intake locally while offline and replay it
 here when connectivity returns. ``client_uuid`` makes every push idempotent:
 re-sending the same record updates rather than duplicates, so a flaky 2G link
-that retries never creates twins — which is exactly the cross-center duplicate
+that retries never creates twins - which is exactly the cross-center duplicate
 problem we exist to prevent.
 """
 from __future__ import annotations

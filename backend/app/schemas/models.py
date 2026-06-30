@@ -4,13 +4,25 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 # ------------------------------- Auth ---------------------------------------
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+
+class SignupRequest(BaseModel):
+    """Public self-registration for ordinary users (families)."""
+    full_name: str = Field(..., min_length=1, max_length=128)
+    email: EmailStr
+    password: str = Field(..., min_length=6, max_length=128)
+
+
+class GoogleAuthRequest(BaseModel):
+    """A Google Identity Services ID token (the `credential` from the button)."""
+    credential: str
 
 
 class TokenResponse(BaseModel):
@@ -51,7 +63,7 @@ class CaseStatusUpdate(BaseModel):
 
 
 class CaseRefine(BaseModel):
-    """Answer to a disambiguation question — updates the case and re-matches."""
+    """Answer to a disambiguation question - updates the case and re-matches."""
     gender: Optional[str] = None
     age_band: Optional[str] = None
     language: Optional[str] = None

@@ -18,7 +18,7 @@ def health():
 def client_config():
     """Non-sensitive config the web/mobile clients read at startup.
 
-    Never returns API keys — only feature flags and map defaults.
+    Never returns API keys - only feature flags and map defaults.
     """
     return {
         "app_name": settings.APP_NAME,
@@ -33,5 +33,10 @@ def client_config():
             "voice_enabled": (settings.VOICE_PROVIDER or "none").lower() != "none",
             "tts_enabled": __import__("app.voice.tts", fromlist=["available"]).available(),
             "face_matching_enabled": (settings.FACE_PROVIDER or "none").lower() == "http",
+        },
+        "auth": {
+            "public_signup_enabled": settings.PUBLIC_SIGNUP_ENABLED,
+            # Public client id only (the secret never leaves the server).
+            "google_client_id": settings.GOOGLE_CLIENT_ID or None,
         },
     }

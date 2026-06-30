@@ -2,7 +2,7 @@
   "name": "setu-web",
   "version": "1.0.0",
   "private": true,
-  "description": "Setu — Kumbh Lost & Found operator + admin console (offline-first PWA)",
+  "description": "Setu - Kumbh Lost & Found operator + admin console (offline-first PWA)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

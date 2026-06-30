@@ -1,14 +1,14 @@
-"""Blocking — shrink the comparison space before scoring.
+"""Blocking - shrink the comparison space before scoring.
 
 Naive matching compares a new report against every open record (O(n²) across the
-event — fatal at Kumbh scale). Blocking restricts comparison to records that
+event - fatal at Kumbh scale). Blocking restricts comparison to records that
 share a coarse key with the query, so a new report is scored against a few
 hundred plausible candidates instead of millions.
 
 Keys used (a candidate need match only the structural gates):
 * opposite case type (missing<->found) and an open status
 * gender compatible (equal, or either side Unknown/blank)
-* age band equal or *adjacent* (61-70 ~ 71-80 — reporters misjudge age)
+* age band equal or *adjacent* (61-70 ~ 71-80 - reporters misjudge age)
 
 Geography and everything else are handled as soft signal in the scorer, not as a
 hard gate, so we never block away a true match because a place name differed.

@@ -1,4 +1,4 @@
-// English — the complete reference dictionary. All other dictionaries inherit
+// English - the complete reference dictionary. All other dictionaries inherit
 // missing keys from this one at runtime, so the app never shows a raw key.
 const en = {
   "app.name": "Setu",
@@ -12,12 +12,27 @@ const en = {
   "nav.logout": "Log out",
 
   "login.title": "Sign in",
-  "login.subtitle": "For volunteers and control-room staff",
-  "login.username": "Username",
+  "login.subtitle": "Sign in to report or help reunite people",
+  "login.username": "Email or username",
   "login.password": "Password",
   "login.submit": "Sign in",
-  "login.error": "Wrong username or password",
-  "login.demo": "Demo: volunteer / volunteer123  ·  admin / admin123",
+  "login.error": "Wrong email/username or password",
+  "login.noAccount": "New here?",
+  "login.createAccount": "Create an account",
+  "login.staffNote": "Volunteers and control-room staff: use your assigned username.",
+
+  "signup.title": "Create your account",
+  "signup.subtitle": "For families and members of the public",
+  "signup.name": "Full name",
+  "signup.email": "Email address",
+  "signup.password": "Password",
+  "signup.passwordHint": "At least 6 characters",
+  "signup.submit": "Create account",
+  "signup.haveAccount": "Already have an account?",
+  "signup.signin": "Sign in",
+  "signup.error": "Could not create your account. Try a different email.",
+  "signup.google": "Continue with Google",
+  "signup.or": "or",
 
   "common.missing": "Missing",
   "common.found": "Found",
@@ -55,7 +70,7 @@ const en = {
   "intake.titleFound": "Register a found person",
   "intake.tapToSpeak": "Tap and speak",
   "intake.listening": "Listening… speak now",
-  "intake.speakHint": "Speak in any language — e.g. “an elderly lady in a white saree, about 65, speaks Marathi, lost near Ramkund”",
+  "intake.speakHint": "Speak in any language - e.g. “an elderly lady in a white saree, about 65, speaks Marathi, lost near Ramkund”",
   "intake.heard": "Heard",
   "intake.orFillManually": "or fill the form",
   "intake.name": "Name",
@@ -78,10 +93,10 @@ const en = {
   "intake.secretHint": "Used to verify a true family member before release",
   "intake.submit": "Find matches",
   "intake.scanning": "Searching all centers…",
-  "intake.draftReady": "I filled this from your voice — please check",
+  "intake.draftReady": "I filled this from your voice - please check",
   "intake.permMic": "Microphone access is needed to record. Please allow it.",
   "intake.permCam": "Camera access is needed for a photo. Please allow it.",
-  "intake.noSpeech": "Voice typing isn't available on this browser — please type instead.",
+  "intake.noSpeech": "Voice typing isn't available on this browser - please type instead.",
 
   "match.title": "Possible matches",
   "match.strong": "Strong match",
@@ -90,7 +105,7 @@ const en = {
   "match.noMatches": "No matches yet. The report is saved and searchable at every center.",
   "match.why": "Why",
   "match.confirmReunion": "Confirm reunion",
-  "match.disambiguation": "Too many similar people — please answer to narrow it down:",
+  "match.disambiguation": "Too many similar people - please answer to narrow it down:",
   "match.considered": "candidates considered",
   "match.reunitedOk": "Reunited! Both reports are now closed.",
   "match.viewCase": "Open",

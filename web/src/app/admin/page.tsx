@@ -13,7 +13,7 @@ function Stat({ icon: Icon, label, value, color }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <p className="text-2xl font-extrabold">{value}</p>
-      <p className="text-xs text-slate-500">{label}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
     </div>
   );
 }
@@ -28,10 +28,10 @@ function Bars({ title, data }: { title: string; data: Record<string, number> }) 
         {entries.map(([k, v]) => (
           <div key={k}>
             <div className="flex justify-between text-xs mb-0.5">
-              <span className="truncate text-slate-600">{k}</span>
-              <span className="text-slate-400">{v}</span>
+              <span className="truncate text-slate-600 dark:text-slate-400">{k}</span>
+              <span className="text-slate-400 dark:text-slate-500">{v}</span>
             </div>
-            <div className="h-2 rounded-full bg-slate-100">
+            <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800">
               <div className="h-2 rounded-full bg-saffron-500" style={{ width: `${(v / max) * 100}%` }} />
             </div>
           </div>
@@ -66,10 +66,10 @@ export default function AdminPage() {
       <h1 className="text-xl font-extrabold mb-3">{t("admin.title")}</h1>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Stat icon={Users} label={t("admin.totalCases")} value={tot.cases} color="bg-slate-100 text-slate-600" />
-        <Stat icon={HeartHandshake} label={t("admin.reunionRate")} value={`${Math.round((tot.reunion_rate || 0) * 100)}%`} color="bg-green-100 text-green-700" />
-        <Stat icon={Clock} label={t("admin.avgResolution")} value={tot.avg_resolution_hours ? `${tot.avg_resolution_hours}${t("admin.hours")}` : "—"} color="bg-blue-100 text-blue-700" />
-        <Stat icon={AlertTriangle} label={t("admin.openCases")} value={tot.open_cases} color="bg-amber-100 text-amber-700" />
+        <Stat icon={Users} label={t("admin.totalCases")} value={tot.cases} color="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400" />
+        <Stat icon={HeartHandshake} label={t("admin.reunionRate")} value={`${Math.round((tot.reunion_rate || 0) * 100)}%`} color="bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-300" />
+        <Stat icon={Clock} label={t("admin.avgResolution")} value={tot.avg_resolution_hours ? `${tot.avg_resolution_hours}${t("admin.hours")}` : "-"} color="bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300" />
+        <Stat icon={AlertTriangle} label={t("admin.openCases")} value={tot.open_cases} color="bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
@@ -84,8 +84,8 @@ export default function AdminPage() {
             <div key={i} className="flex items-center justify-between text-sm">
               <span className="truncate">{h.name}</span>
               <div className="flex items-center gap-2">
-                {h.recommend_help_point && <span className="chip bg-red-100 text-red-700 text-[10px]">help point</span>}
-                <span className="text-slate-400">{h.live_cases_nearby} · {h.cctv_nearby}📷</span>
+                {h.recommend_help_point && <span className="chip bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-[10px]">help point</span>}
+                <span className="text-slate-400 dark:text-slate-500">{h.live_cases_nearby} · {h.cctv_nearby}📷</span>
               </div>
             </div>
           ))}
@@ -112,9 +112,9 @@ export default function AdminPage() {
         </div>
         <div className="space-y-1 max-h-72 overflow-y-auto">
           {events.map((e) => (
-            <div key={e.id} className="flex items-center justify-between text-xs border-b border-slate-50 py-1">
-              <span className="font-mono text-slate-600">{e.action}</span>
-              <span className="text-slate-400">{new Date(e.ts).toLocaleTimeString()}</span>
+            <div key={e.id} className="flex items-center justify-between text-xs border-b border-slate-50 dark:border-slate-800 py-1">
+              <span className="font-mono text-slate-600 dark:text-slate-400">{e.action}</span>
+              <span className="text-slate-400 dark:text-slate-500">{new Date(e.ts).toLocaleTimeString()}</span>
             </div>
           ))}
         </div>

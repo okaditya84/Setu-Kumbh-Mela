@@ -1,10 +1,10 @@
 """Realistic case generator.
 
-The official 2,500-row CSV is all *missing* reports — so found↔missing matching
+The official 2,500-row CSV is all *missing* reports - so found↔missing matching
 has nothing to match against. This generator produces a larger, diverse, and
 realistic population: both MISSING and FOUND reports, real-looking Indian names
 (by region + gender), valid mobiles, multilingual descriptions, real centers and
-gazetteer locations, timestamps clustered on Amrit Snan days — plus deliberately
+gazetteer locations, timestamps clustered on Amrit Snan days - plus deliberately
 **planted true cross-center pairs** (a missing report + the matching found report
 at another center) so genuine reunions and notifications occur in the demo.
 

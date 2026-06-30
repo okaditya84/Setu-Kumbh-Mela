@@ -1,6 +1,6 @@
 """Real end-to-end + load test against a LIVE running server.
 
-Not unit stubs — this drives the actual HTTP API: real DB, real matching engine,
+Not unit stubs - this drives the actual HTTP API: real DB, real matching engine,
 real LLM (Claude) for intake parsing and announcements, real concurrency.
 
 Usage:
@@ -10,9 +10,9 @@ Usage:
     BASE_URL=http://127.0.0.1:8099 python -m scripts.e2e_load_test
 
 Phases:
-  1. Functional E2E (correctness) — exercises every flow with assertions,
+  1. Functional E2E (correctness) - exercises every flow with assertions,
      including a real Claude call for /intake/parse and /announcement.
-  2. Load — fires many concurrent report+match requests derived from the real
+  2. Load - fires many concurrent report+match requests derived from the real
      seeded data and reports throughput + p50/p95/p99 latency + error rate.
 """
 from __future__ import annotations
@@ -38,7 +38,7 @@ def check(name: str, cond: bool, extra: str = "") -> None:
         PASS += 1
     else:
         FAIL += 1
-    print(f"  {mark} {name}{(' — ' + extra) if extra else ''}")
+    print(f"  {mark} {name}{(' - ' + extra) if extra else ''}")
 
 
 def login(client: httpx.Client, user: str, pw: str) -> str:

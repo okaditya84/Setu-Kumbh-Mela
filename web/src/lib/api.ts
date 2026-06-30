@@ -51,10 +51,18 @@ export const api = {
   login: (username: string, password: string) =>
     req<AuthInfo>("/auth/login", { method: "POST", body: JSON.stringify({ username, password }) }, false),
 
+  // Public self-registration - always creates a non-admin ("public") account.
+  signup: (full_name: string, email: string, password: string) =>
+    req<AuthInfo>("/auth/signup", { method: "POST", body: JSON.stringify({ full_name, email, password }) }, false),
+
+  // Exchange a Google Identity Services credential for a Setu session.
+  googleAuth: (credential: string) =>
+    req<AuthInfo>("/auth/google", { method: "POST", body: JSON.stringify({ credential }) }, false),
+
   health: () => req<{ status: string }>("/health", {}, false),
   config: () => req<any>("/config", {}, false),
 
-  // Public contact form — no auth required.
+  // Public contact form - no auth required.
   contact: (name: string, email: string, message: string) =>
     req<{ ok: boolean }>(
       "/contact",

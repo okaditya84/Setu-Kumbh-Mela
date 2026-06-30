@@ -1,9 +1,9 @@
-"""Matching engine — the orchestration layer.
+"""Matching engine - the orchestration layer.
 
 Pipeline for a query case:
 1. exact hashed-mobile fast path (near-certain identity);
 2. blocking to fetch plausible candidates;
-3. score each candidate (Fellegi–Sunter, see scorer.py);
+3. score each candidate (Fellegi-Sunter, see scorer.py);
 4. rank, tier (strong / possible / weak) and cap;
 5. if a large cluster sits above the review threshold with little score
    separation, return *disambiguating questions* instead of a long list
@@ -56,7 +56,7 @@ def _explain(query: Case, cand: Case, sr: ScoreResult) -> str:
     parts = [str(l["detail"]) for l in pos[:4]]
     txt = f"{int(round(sr.probability * 100))}% likely the same person"
     if parts:
-        txt += " — " + "; ".join(parts)
+        txt += " - " + "; ".join(parts)
     if neg:
         txt += f". Note: {neg[0]['detail']}"
     return txt
@@ -66,7 +66,7 @@ def _disambiguation_questions(query: Case, cluster: List[Case]) -> List[Dict[str
     """Find the fields that best split an ambiguous cluster and ask about them.
 
     We only ask about attributes that are *missing or unknown on the query* and
-    that actually vary across the cluster — those are the questions that collapse
+    that actually vary across the cluster - those are the questions that collapse
     the candidate set fastest.
     """
     questions: List[Dict[str, object]] = []
@@ -152,7 +152,7 @@ def find_matches(db: Session, query: Case, limit: Optional[int] = None) -> Dict[
     scored.sort(key=lambda t: t[1].probability, reverse=True)
     ranked = scored[: max(limit, settings.DISAMBIGUATION_TRIGGER_COUNT * 2)]
 
-    # Only surface candidates above the display floor — hide baseline noise.
+    # Only surface candidates above the display floor - hide baseline noise.
     shown = [(c, sr) for c, sr in ranked if sr.probability >= settings.MATCH_DISPLAY_FLOOR]
     candidates = []
     for cand, sr in shown[:limit]:

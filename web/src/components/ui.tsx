@@ -19,20 +19,20 @@ export function Scanning({ label }: { label: string }) {
           <Loader2 className="h-8 w-8 animate-spin text-white" />
         </span>
       </div>
-      <p className="relative font-semibold text-slate-700">{label}</p>
+      <p className="relative font-semibold text-slate-700 dark:text-slate-200">{label}</p>
     </div>
   );
 }
 
 export function Chip({ children, color = "slate" }: { children: React.ReactNode; color?: string }) {
   const map: Record<string, string> = {
-    slate: "bg-slate-100 text-slate-700",
-    green: "bg-green-100 text-green-800",
-    amber: "bg-amber-100 text-amber-800",
-    red: "bg-red-100 text-red-800",
-    saffron: "bg-saffron-100 text-saffron-800",
-    teal: "bg-teal-100 text-teal-800",
-    blue: "bg-blue-100 text-blue-800",
+    slate: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+    green: "bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300",
+    amber: "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300",
+    red: "bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300",
+    saffron: "bg-saffron-100 text-saffron-800 dark:bg-saffron-950/50 dark:text-saffron-300",
+    teal: "bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300",
+    blue: "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300",
   };
   return <span className={`chip ${map[color] || map.slate}`}>{children}</span>;
 }
@@ -50,7 +50,7 @@ export function Modal({
 }) {
   // Render into document.body via a portal. Critical: the modal is position:fixed,
   // but the header has backdrop-filter which makes it a containing block for fixed
-  // descendants — so an in-header modal would anchor to the header, not the viewport.
+  // descendants - so an in-header modal would anchor to the header, not the viewport.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!open || !mounted) return null;
@@ -64,9 +64,9 @@ export function Modal({
         className="card w-full sm:max-w-md rounded-b-none sm:rounded-2xl animate-[slideup_0.2s_ease] flex flex-col max-h-[88vh] my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-slate-100 shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <h3 className="font-bold text-lg">{title}</h3>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100" aria-label="close">
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="close">
             <X className="h-5 w-5" />
           </button>
         </div>

@@ -1,4 +1,4 @@
-"""Audio blob storage — pluggable backend.
+"""Audio blob storage - pluggable backend.
 
 * ``local`` (default): writes to ``VOICE_STORAGE_DIR`` on disk and serves bytes
   back through the API. Zero-config, free, perfect for the demo and an edge box.

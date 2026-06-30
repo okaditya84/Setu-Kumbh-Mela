@@ -3,7 +3,7 @@
 // `ui` = a full UI dictionary ships for this language (en/hi/mr today).
 // Every language is still fully usable for VOICE input (speechLocale, used by
 // the browser SpeechRecognition API) and for PA ANNOUNCEMENTS (announceName,
-// passed to the backend LLM) — so the *data* path is multilingual for all of
+// passed to the backend LLM) - so the *data* path is multilingual for all of
 // India even where the UI chrome falls back to English. Adding a UI language is
 // just dropping a dictionary in ./dictionaries and flipping `ui: true`.
 

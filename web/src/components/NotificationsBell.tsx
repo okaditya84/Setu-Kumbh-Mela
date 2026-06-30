@@ -35,7 +35,7 @@ export function NotificationsBell() {
       const { count } = await api.notificationsUnreadCount();
       setCount(count);
     } catch {
-      // Silent — bell just shows last known count.
+      // Silent - bell just shows last known count.
     }
   }, []);
 
@@ -86,7 +86,7 @@ export function NotificationsBell() {
     <>
       <button
         onClick={openPanel}
-        className="relative p-2 rounded-lg hover:bg-slate-100"
+        className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
         aria-label="Notifications"
       >
         <Bell className="h-4 w-4" />
@@ -102,7 +102,7 @@ export function NotificationsBell() {
           <button
             onClick={markAll}
             disabled={items.every((i) => i.read)}
-            className="inline-flex items-center gap-1 text-xs font-medium text-saffron-700 disabled:text-slate-300"
+            className="inline-flex items-center gap-1 text-xs font-medium text-saffron-700 dark:text-saffron-300 disabled:text-slate-300"
           >
             <CheckCheck className="h-3.5 w-3.5" /> Mark all read
           </button>
@@ -113,7 +113,7 @@ export function NotificationsBell() {
             <Spinner className="h-5 w-5 text-saffron-600" />
           </div>
         ) : items.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-400">No notifications</p>
+          <p className="py-8 text-center text-sm text-slate-400 dark:text-slate-500">No notifications</p>
         ) : (
           <ul className="space-y-1.5">
             {items.map((n) => (
@@ -122,18 +122,18 @@ export function NotificationsBell() {
                   onClick={() => onItem(n)}
                   className={`w-full text-left rounded-xl border p-3 transition ${
                     n.read
-                      ? "border-slate-100 bg-white"
-                      : "border-saffron-200 bg-saffron-50"
+                      ? "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800"
+                      : "border-saffron-200 dark:border-saffron-900 bg-saffron-50 dark:bg-saffron-950/40"
                   }`}
                 >
                   <div className="flex items-start gap-2">
                     {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-saffron-600" />}
                     <div className="min-w-0 flex-1">
-                      <p className={`text-sm truncate ${n.read ? "font-medium text-slate-700" : "font-semibold text-slate-900"}`}>
+                      <p className={`text-sm truncate ${n.read ? "font-medium text-slate-700 dark:text-slate-200" : "font-semibold text-slate-900 dark:text-slate-100"}`}>
                         {n.title}
                       </p>
-                      {n.body && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>}
-                      <p className="text-[11px] text-slate-400 mt-1">{relativeTime(n.created_at)}</p>
+                      {n.body && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{n.body}</p>}
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">{relativeTime(n.created_at)}</p>
                     </div>
                   </div>
                 </button>

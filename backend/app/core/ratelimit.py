@@ -2,7 +2,7 @@
 
 Both are in-memory (no extra infra) and tunable at runtime by an admin:
 * ``LIMITS`` (requests/min per IP, per category) can be patched live via
-  PATCH /admin/rate-limits — env sets the defaults.
+  PATCH /admin/rate-limits - env sets the defaults.
 * ``TRACE`` keeps the last N requests (method, path, status, latency, IP, actor)
   for the admin observability feed at GET /admin/trace.
 

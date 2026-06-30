@@ -4,7 +4,7 @@ Design notes
 ------------
 * A single ``Case`` table holds both MISSING reports (filed by a family) and
   FOUND reports (filed by a volunteer who has the person in front of them).
-  Matching is always MISSING<->FOUND across *all* centers — that is the whole
+  Matching is always MISSING<->FOUND across *all* centers - that is the whole
   point: closing the cross-center gap.
 * ``client_uuid`` makes every write idempotent so the offline-first clients can
   safely replay their queue when the network returns.
@@ -57,6 +57,7 @@ class CaseStatus(str, enum.Enum):
 
 
 class Role(str, enum.Enum):
+    public = "public"        # an ordinary person who self-registered (family member)
     volunteer = "volunteer"
     admin = "admin"
 

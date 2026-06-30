@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { I18nProvider } from "@/i18n";
+import { ThemeProvider } from "@/lib/theme";
 import { startAutoSync } from "@/lib/sync";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -12,5 +13,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     }
     return stop;
   }, []);
-  return <I18nProvider>{children}</I18nProvider>;
+  return (
+    <ThemeProvider>
+      <I18nProvider>{children}</I18nProvider>
+    </ThemeProvider>
+  );
 }

@@ -2,13 +2,13 @@
 
 The synthetic dataset records the last-seen place as one of 20 named landmarks
 rather than coordinates. To score geographic proximity we resolve each name to a
-coordinate within the real Nashik–Trimbakeshwar mela corridor.
+coordinate within the real Nashik-Trimbakeshwar mela corridor.
 
 These are curated approximations anchored on real landmarks (Ramkund, Panchavati,
 Trimbakeshwar/Kushavarta, Nashik Road station, CBS, the Trimbak Road exit, Adgaon).
 They are intentionally internally consistent so distance ranking is meaningful.
 For a real deployment each center's intake UI would drop a pin on the map and
-store true coordinates — at which point this table is only a fallback.
+store true coordinates - at which point this table is only a fallback.
 """
 from __future__ import annotations
 

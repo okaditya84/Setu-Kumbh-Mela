@@ -2,6 +2,7 @@ import type { Config } from "tailwindcss";
 
 // Brand: Kumbh saffron + calm teal. High-contrast, large touch targets.
 const config: Config = {
+  darkMode: "class",
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
