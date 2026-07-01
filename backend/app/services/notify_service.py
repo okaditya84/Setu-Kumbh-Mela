@@ -48,21 +48,26 @@ def notify_match(db: Session, query: Case, candidates: List[dict]) -> int:
             continue
         other: Case = cand["case"]
         qc, oc = query.reporting_center, other.reporting_center
-        if not qc or not oc or qc == oc:
-            continue  # same-center matches don't need cross-center alerting
+        # Same non-empty center: staff already sees both sides, no alert needed.
+        # But if either side has no center (e.g. a public/family self-report),
+        # we still alert whichever center IS present - that is the actionable side.
+        if qc and oc and qc == oc:
+            continue
         # Identify which is the missing vs found side for clear wording.
         missing = query if query.case_type == CaseType.missing.value else other
         found = other if query.case_type == CaseType.missing.value else query
         pct = round(cand["probability"] * 100)
-        # Alert the family's (missing) center.
+        found_where = found.reporting_center or "another center"
+        family_where = missing.reporting_center or "a family searching online"
+        # Alert the family's (missing) center, if one is set.
         _add(db, center=missing.reporting_center, kind="match",
              title=f"Possible match ({pct}%) for {_label(missing)}",
-             body=f"A found person at {found.reporting_center} may be your missing case {missing.case_id}.",
+             body=f"A found person at {found_where} may be your missing case {missing.case_id}.",
              case_id=missing.id, related_case_id=found.id, probability=cand["probability"])
-        # Alert the center holding the found person.
+        # Alert the center holding the found person, if one is set.
         _add(db, center=found.reporting_center, kind="match",
              title=f"Possible match ({pct}%) for the person at your center",
-             body=f"A family at {missing.reporting_center} is searching (case {missing.case_id}).",
+             body=f"{family_where} is looking for this person (missing case {missing.case_id}).",
              case_id=found.id, related_case_id=missing.id, probability=cand["probability"])
         made += 1
     if made:
