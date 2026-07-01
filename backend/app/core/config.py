@@ -177,7 +177,7 @@ class Settings(BaseSettings):
     W_LANGUAGE_DISAGREE: float = -0.6
     W_STATE_AGREE: float = 1.4
     W_DISTRICT_AGREE: float = 1.0
-    W_NAME_STRONG: float = 3.0            # phonetic/nickname strong match
+    W_NAME_STRONG: float = 4.0            # exact/nickname name-token match: strong evidence
     W_NAME_WEAK: float = 1.2
     W_NAME_DISAGREE: float = -0.8
     W_MOBILE_EXACT: float = 8.0           # exact phone => near-certain identity
@@ -207,7 +207,7 @@ class Settings(BaseSettings):
     MATCH_MAX_CANDIDATES: int = 25
     # Candidates below this probability are noise - never shown to the operator
     # (kills the "everyone is an 8% match" effect on a thin query).
-    MATCH_DISPLAY_FLOOR: float = 0.45
+    MATCH_DISPLAY_FLOOR: float = 0.40
     # A cross-center match at/above this probability raises notifications to BOTH
     # the missing and found reporting centers.
     NOTIFY_THRESHOLD: float = 0.50
